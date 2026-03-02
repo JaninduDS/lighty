@@ -1,11 +1,11 @@
 {
-    "name": "lumina_lanka",
-    "short_name": "lumina_lanka",
+    "name": "Lumina Lanka",
+    "short_name": "Lumina Lanka",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#000000",
     "theme_color": "#000000",
-    "description": "A new Flutter project.",
+    "description": "App to locate and report streetlighting issues.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
