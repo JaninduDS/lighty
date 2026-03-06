@@ -1,12 +1,14 @@
+import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../shared/widgets/glass_card.dart';
-
+import '../../../core/utils/app_notifications.dart';
 
 class CouncilDashboard extends StatefulWidget {
   const CouncilDashboard({super.key});
@@ -23,6 +25,7 @@ class _CouncilDashboardState extends State<CouncilDashboard> {
   int _pendingIssues = 0;
   int _workingPoles = 0;
   int _brokenPoles = 0;
+  int _fixedThisWeek = 0; // NEW STAT
   
   // Chart Data
   List<FlSpot> _weeklyReportSpots = [];
@@ -53,25 +56,27 @@ class _CouncilDashboardState extends State<CouncilDashboard> {
         }
       }
 
-      // 2. Fetch Reports for Line Chart (Last 7 Days)
+      // 2. Fetch Reports for Line Chart & List
       final sevenDaysAgo = DateTime.now().subtract(const Duration(days: 6));
       final reportsData = await supabase
           .from('reports')
-          .select('created_at, status, issue_type') // <--- ADD issue_type
+          // Fetching all necessary columns for the assignment feature
+          .select('id, created_at, status, issue_type, pole_id, name') 
           .gte('created_at', sevenDaysAgo.toIso8601String())
           .order('created_at', ascending: false);
 
-      // Process Line Chart Data
+      // Process Data
       Map<int, int> dailyCounts = {for (var i = 0; i < 7; i++) i: 0};
       final now = DateTime.now();
       
       int pendingCount = 0;
+      int fixedCount = 0;
 
       for (var report in reportsData) {
         if (report['status'] == 'Pending') pendingCount++;
+        if (report['status'] == 'Resolved') fixedCount++; // Count resolved
         
         final date = DateTime.parse(report['created_at']).toLocal();
-        // Calculate how many days ago this was (0 = today, 1 = yesterday, etc.)
         final difference = DateTime(now.year, now.month, now.day)
             .difference(DateTime(date.year, date.month, date.day))
             .inDays;
@@ -81,13 +86,13 @@ class _CouncilDashboardState extends State<CouncilDashboard> {
         }
       }
 
-      // Generate FlSpots (X: 0 to 6, Y: count). X=0 is 6 days ago, X=6 is today.
+      // Generate FlSpots
       List<FlSpot> spots = [];
       List<String> days = [];
       for (int i = 6; i >= 0; i--) {
         spots.add(FlSpot((6 - i).toDouble(), dailyCounts[i]!.toDouble()));
         final dayDate = now.subtract(Duration(days: i));
-        days.add(DateFormat('E').format(dayDate)); // 'Mon', 'Tue', etc.
+        days.add(DateFormat('E').format(dayDate)); 
       }
 
       if (mounted) {
@@ -96,9 +101,10 @@ class _CouncilDashboardState extends State<CouncilDashboard> {
           _workingPoles = working;
           _brokenPoles = broken;
           _pendingIssues = pendingCount;
+          _fixedThisWeek = fixedCount;
           _weeklyReportSpots = spots;
           _weekDays = days;
-          _recentReports = reportsData.take(20).toList(); // Show top 20 in list
+          _recentReports = reportsData.take(20).toList(); 
           _isLoading = false;
         });
       }
@@ -106,6 +112,22 @@ class _CouncilDashboardState extends State<CouncilDashboard> {
       debugPrint('Error fetching dashboard data: $e');
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  void _showAssignSheet(Map<String, dynamic> report) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => AssignElectricianSheet(
+        reportId: report['id'].toString(),
+        poleId: report['pole_id'].toString(),
+        issueType: report['issue_type'] ?? 'Unknown Issue',
+        onAssigned: () {
+          _fetchDashboardData(); // Refresh dashboard after assignment
+        },
+      ),
+    );
   }
 
   @override
@@ -133,7 +155,7 @@ class _CouncilDashboardState extends State<CouncilDashboard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // === STATS ROW ===
+                  // === STATS ROW (Now with 3 cards) ===
                   Row(
                     children: [
                       Expanded(
@@ -144,13 +166,22 @@ class _CouncilDashboardState extends State<CouncilDashboard> {
                           color: AppColors.accentBlue,
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: _buildStatCard(
                           title: l10n.pendingRepairs,
                           value: _pendingIssues.toString(),
                           icon: CupertinoIcons.exclamationmark_triangle_fill,
                           color: AppColors.accentRed,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildStatCard(
+                          title: 'Fixed (7d)', // Hardcoded to avoid translation errors for now
+                          value: _fixedThisWeek.toString(),
+                          icon: CupertinoIcons.checkmark_shield_fill,
+                          color: AppColors.accentGreen,
                         ),
                       ),
                     ],
@@ -200,6 +231,7 @@ class _CouncilDashboardState extends State<CouncilDashboard> {
                               final isPending = report['status'] == 'Pending';
 
                               return ListTile(
+                                onTap: isPending ? () => _showAssignSheet(report) : null,
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                                 leading: Container(
                                   padding: const EdgeInsets.all(10),
@@ -221,14 +253,23 @@ class _CouncilDashboardState extends State<CouncilDashboard> {
                                   padding: const EdgeInsets.only(top: 4.0),
                                   child: Text(formattedDate, style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 13)),
                                 ),
-                                trailing: Text(
-                                  report['status'],
-                                  style: TextStyle(
-                                    fontFamily: 'GoogleSansFlex',
-                                    color: isPending ? AppColors.accentRed : AppColors.accentGreen,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      report['status'],
+                                      style: TextStyle(
+                                        fontFamily: 'GoogleSansFlex',
+                                        color: isPending ? AppColors.accentRed : AppColors.accentGreen,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    if (isPending) ...[
+                                      const SizedBox(width: 8),
+                                      const Icon(CupertinoIcons.chevron_right, color: Colors.white38, size: 16),
+                                    ]
+                                  ],
                                 ),
                               );
                             },
@@ -242,19 +283,24 @@ class _CouncilDashboardState extends State<CouncilDashboard> {
 
   Widget _buildStatCard({required String title, required String value, required IconData icon, required Color color}) {
     return GlassCard(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(color: color.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
-            child: Icon(icon, color: color, size: 20),
+            child: Icon(icon, color: color, size: 18),
           ),
-          const SizedBox(height: 16),
-          Text(value, style: const TextStyle(fontFamily: 'GoogleSansFlex', color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 4),
-          Text(title, style: TextStyle(fontFamily: 'GoogleSansFlex', color: Colors.white.withOpacity(0.6), fontSize: 14, fontWeight: FontWeight.w500)),
+          const SizedBox(height: 12),
+          Text(value, style: const TextStyle(fontFamily: 'GoogleSansFlex', color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 2),
+          Text(
+            title, 
+            style: TextStyle(fontFamily: 'GoogleSansFlex', color: Colors.white.withOpacity(0.6), fontSize: 12, fontWeight: FontWeight.w500),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ],
       ),
     );
@@ -395,6 +441,228 @@ class _CouncilDashboardState extends State<CouncilDashboard> {
         const SizedBox(width: 8),
         Text(text, style: TextStyle(fontFamily: 'GoogleSansFlex', color: Colors.white.withOpacity(0.7), fontSize: 13)),
       ],
+    );
+  }
+}
+
+// ============================================================================
+// ASSIGN ELECTRICIAN BOTTOM SHEET
+// ============================================================================
+
+class AssignElectricianSheet extends StatefulWidget {
+  final String reportId;
+  final String poleId;
+  final String issueType;
+  final VoidCallback onAssigned;
+
+  const AssignElectricianSheet({
+    super.key,
+    required this.reportId,
+    required this.poleId,
+    required this.issueType,
+    required this.onAssigned,
+  });
+
+  @override
+  State<AssignElectricianSheet> createState() => _AssignElectricianSheetState();
+}
+
+class _AssignElectricianSheetState extends State<AssignElectricianSheet> {
+  bool _isLoading = true;
+  bool _isAssigning = false;
+  List<dynamic> _electricians = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchElectricians();
+  }
+
+  Future<void> _fetchElectricians() async {
+    try {
+      final data = await Supabase.instance.client
+          .from('profiles')
+          .select('id, name, phone')
+          .eq('role', 'electrician');
+      
+      if (mounted) {
+        setState(() {
+          _electricians = data;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _assignTask(String electricianId) async {
+    HapticFeedback.mediumImpact();
+    setState(() => _isAssigning = true);
+
+    try {
+      // 1. Update Report Status & Assignment
+      await Supabase.instance.client.from('reports').update({
+        'status': 'Assigned',
+        'assigned_to': electricianId,
+      }).eq('id', widget.reportId);
+
+      // 2. Update Pole Status to Maintenance (so it turns orange on map)
+      await Supabase.instance.client.from('poles').update({
+        'status': 'Maintenance',
+      }).eq('id', widget.poleId);
+
+      if (mounted) {
+        AppNotifications.show(
+          context: context,
+          message: 'Task Assigned Successfully!',
+          icon: CupertinoIcons.check_mark_circled_solid,
+          iconColor: AppColors.accentGreen,
+        );
+        widget.onAssigned();
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        AppNotifications.show(
+          context: context,
+          message: 'Failed to assign task.',
+          icon: CupertinoIcons.exclamationmark_triangle_fill,
+          iconColor: Colors.redAccent,
+        );
+        setState(() => _isAssigning = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          color: const Color(0xFF1C1C1E).withOpacity(0.9),
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Handle bar
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              
+              const Text(
+                'Assign Task',
+                style: TextStyle(
+                  fontFamily: 'GoogleSansFlex',
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Issue: ${widget.issueType}',
+                style: TextStyle(
+                  fontFamily: 'GoogleSansFlex',
+                  color: Colors.white.withOpacity(0.6),
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              if (_isLoading)
+                const Padding(
+                  padding: EdgeInsets.all(32.0),
+                  child: Center(child: CircularProgressIndicator(color: AppColors.accentBlue)),
+                )
+              else if (_electricians.isEmpty)
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Text(
+                    'No electricians found in the system. Please add an electrician account first.',
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                )
+              else
+                ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: _electricians.length,
+                  separatorBuilder: (context, index) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    final elec = _electricians[index];
+                    return GestureDetector(
+                      onTap: _isAssigning ? null : () => _assignTask(elec['id']),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.white.withOpacity(0.1)),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: AppColors.accentAmber.withOpacity(0.2),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(CupertinoIcons.bolt_fill, color: AppColors.accentAmber, size: 20),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    elec['name'] ?? 'Unknown',
+                                    style: const TextStyle(
+                                      fontFamily: 'GoogleSansFlex',
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  if (elec['phone'] != null)
+                                    Text(
+                                      elec['phone'],
+                                      style: TextStyle(
+                                        fontFamily: 'GoogleSansFlex',
+                                        color: Colors.white.withOpacity(0.5),
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                            const Icon(CupertinoIcons.chevron_right, color: Colors.white38, size: 18),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
