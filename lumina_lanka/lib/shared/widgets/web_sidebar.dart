@@ -224,6 +224,53 @@ class _WebSidebarState extends ConsumerState<WebSidebar> {
           },
           isActive: false,
         ),
+
+        const SizedBox(height: 16),
+
+        // === NAVIGATION LINKS (COLLAPSED) ===
+        _buildSidebarIconButton(
+          icon: CupertinoIcons.exclamationmark_triangle_fill,
+          tooltip: l10n.reportAnIssue,
+          onTap: widget.onReportTapped,
+          isActive: false,
+          iconColor: const Color(0xFFE84A5F), // Red
+        ),
+
+        if (authState.role == AppRole.council) ...[
+          const SizedBox(height: 12),
+          _buildSidebarIconButton(
+            icon: CupertinoIcons.chart_bar_alt_fill,
+            tooltip: l10n.councilDashboard,
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const CouncilDashboard()));
+            },
+            isActive: false,
+            iconColor: const Color(0xFF34C759), // Green
+          ),
+          const SizedBox(height: 12),
+          _buildSidebarIconButton(
+            icon: CupertinoIcons.person_2_alt,
+            tooltip: l10n.manageStaff,
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const StaffManagementScreen()));
+            },
+            isActive: false,
+            iconColor: const Color(0xFF9E47FF), // Purple
+          ),
+        ],
+
+        if (authState.role == AppRole.electrician) ...[
+          const SizedBox(height: 12),
+          _buildSidebarIconButton(
+            icon: CupertinoIcons.bolt_fill,
+            tooltip: l10n.myTasks,
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const ElectricianTasksScreen()));
+            },
+            isActive: false,
+            iconColor: const Color(0xFFFFCC00), // Yellow
+          ),
+        ],
         
         const Spacer(),
 
@@ -277,6 +324,7 @@ class _WebSidebarState extends ConsumerState<WebSidebar> {
     required String tooltip,
     required VoidCallback onTap,
     required bool isActive,
+    Color? iconColor,
   }) {
     return _TooltipWithPointer(
       message: tooltip,
@@ -297,7 +345,7 @@ class _WebSidebarState extends ConsumerState<WebSidebar> {
           ),
           child: Icon(
             icon, 
-            color: isActive ? Colors.white : const Color(0xFFF5F5F5).withOpacity(0.67),
+            color: isActive ? Colors.white : (iconColor ?? const Color(0xFFF5F5F5).withOpacity(0.67)),
             size: 22,
           ),
         ),

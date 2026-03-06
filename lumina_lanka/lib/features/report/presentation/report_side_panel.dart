@@ -8,6 +8,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/utils/app_notifications.dart';
+import '../../../l10n/app_localizations.dart';
 
 class ReportSidePanel extends StatefulWidget {
   final bool isOpen;
@@ -227,16 +228,28 @@ class _ReportContentState extends State<ReportContent> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    final List<String> issues = [
+      l10n.issueSingleOut,
+      l10n.issueFlickering,
+      l10n.issueDaytime,
+      l10n.issueDim,
+      l10n.issueMultipleOut,
+      l10n.issueLeaning,
+      l10n.issueDamaged,
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildFlightStyleCard(
-          title: "Emergency Warning",
+          title: l10n.emergencyWarning,
           titleColor: const Color(0xFFEF5350),
           icon: CupertinoIcons.exclamationmark_triangle_fill,
           iconColor: const Color(0xFFEF5350),
-          content: const Text(
-            'For downed powerlines, exposed wires, and hanging light fixtures, do NOT report here. Call the Council Emergency Line immediately at 119.',
+          content: Text(
+             l10n.emergencyDesc,
             style: TextStyle(
               fontFamily: 'GoogleSansFlex',
               color: Colors.white70,
@@ -247,12 +260,12 @@ class _ReportContentState extends State<ReportContent> {
         ),
         const SizedBox(height: 16),
         _buildFlightStyleCard(
-          title: "Issue Details",
+          title: l10n.issueDetails,
           content: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                "What's wrong with the streetlight?",
+              Text(
+                l10n.whatsWrong,
                 style: TextStyle(
                   fontFamily: 'GoogleSansFlex',
                   color: Colors.white,
@@ -267,12 +280,12 @@ class _ReportContentState extends State<ReportContent> {
         ),
         const SizedBox(height: 16),
         _buildFlightStyleCard(
-          title: "Streetlight Details",
+          title: l10n.streetlightDetails,
           content: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                "Additional information (optional)",
+              Text(
+                l10n.additionalInfo,
                 style: TextStyle(
                   fontFamily: 'GoogleSansFlex',
                   color: Colors.white70,
@@ -281,7 +294,7 @@ class _ReportContentState extends State<ReportContent> {
                 ),
               ),
               const SizedBox(height: 8),
-              _buildTextField("e.g. landmarks, side of street", _additionalInfoController, maxLines: 3),
+              _buildTextField(l10n.egLandmarks, _additionalInfoController, maxLines: 3),
               const SizedBox(height: 16),
               // Upload Photo Button
               if (_selectedImage != null)
@@ -326,7 +339,12 @@ class _ReportContentState extends State<ReportContent> {
                     HapticFeedback.lightImpact();
                     try {
                       final picker = ImagePicker();
-                      final image = await picker.pickImage(source: ImageSource.camera);
+                      final image = await picker.pickImage(
+                        source: ImageSource.camera,
+                        imageQuality: 70,       // Compress quality to 70%
+                        maxWidth: 1080,         // Resize width to max 1080px
+                        maxHeight: 1080,        // Resize height to max 1080px
+                      );
                       if (image != null) {
                         final bytes = await image.readAsBytes();
                         setState(() {
@@ -359,7 +377,7 @@ class _ReportContentState extends State<ReportContent> {
                         Icon(CupertinoIcons.camera_fill, color: Colors.white.withValues(alpha: 0.6), size: 20),
                         const SizedBox(width: 8),
                         Text(
-                          'Upload a Photo (optional)',
+                          l10n.uploadPhoto,
                           style: TextStyle(
                             fontFamily: 'GoogleSansFlex',
                             color: Colors.white.withValues(alpha: 0.6),

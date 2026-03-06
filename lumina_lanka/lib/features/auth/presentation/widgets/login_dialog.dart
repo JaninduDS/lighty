@@ -264,22 +264,26 @@ class _LoginDialogState extends State<LoginDialog> {
                 fontFamily: 'GoogleSansFlex',
                 color: Colors.white,
                 fontSize: 26,
-                fontWeight: FontWeight.w600, // Reduced from bold
+                fontWeight: FontWeight.w600,
                 letterSpacing: -0.5,
               ),
             ),
-            const SizedBox(height: 10),
-            // Subtitle
-            Text(
-              'You can sign in if you already have an account,\nor contact your administrator.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontFamily: 'GoogleSansFlex',
-                color: Colors.white.withOpacity(0.45),
-                fontSize: 15,
-                height: 1.5,
+            
+            // === ADDED SUBTITLE FOR STAFF ONLY ===
+            if (widget.isStaffMode) ...[
+              const SizedBox(height: 10),
+              Text(
+                'You can sign in if you already have an account,\nor contact your administrator.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'GoogleSansFlex',
+                  color: Colors.white.withOpacity(0.45),
+                  fontSize: 15,
+                  height: 1.5,
+                ),
               ),
-            ),
+            ],
+            
             const SizedBox(height: 28),
             // Email field
             Container(
@@ -318,11 +322,8 @@ class _LoginDialogState extends State<LoginDialog> {
                 onSubmitted: (_) => _handleContinue(),
               ),
             ),
-            const SizedBox(height: 24),
-            // Role info section
-            _buildRoleInfoSection(),
             const SizedBox(height: 28),
-            // Continue button (360x60)
+            // Continue button
             SizedBox(
               width: 360,
               height: 60,
@@ -336,81 +337,45 @@ class _LoginDialogState extends State<LoginDialog> {
                   style: TextStyle(
                     fontFamily: 'GoogleSansFlex',
                     fontSize: 18,
-                    fontWeight: FontWeight.w500, // Reduced from w600
+                    fontWeight: FontWeight.w500,
                     color: Colors.white,
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-            // Create Account link
-            GestureDetector(
-              onTap: () {
-                if (_emailController.text.trim().isEmpty || !_emailController.text.contains('@')) {
-                  AppNotifications.show(
-                    context: context,
-                    message: 'Please enter a valid email first',
-                    icon: CupertinoIcons.exclamationmark_triangle_fill,
-                    iconColor: Colors.redAccent,
-                  );
-                  return;
-                }
-                setState(() => _isSignUpMode = true);
-              },
-              child: Text(
-                'New here? Create an Account  \u203a',
-                style: TextStyle(
-                  fontFamily: 'GoogleSansFlex',
-                  color: _blue.withOpacity(0.9),
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
+            
+            // === HIDE CREATE ACCOUNT FOR STAFF ===
+            if (!widget.isStaffMode) ...[
+              const SizedBox(height: 16),
+              // Create Account link
+              GestureDetector(
+                onTap: () {
+                  if (_emailController.text.trim().isEmpty || !_emailController.text.contains('@')) {
+                    AppNotifications.show(
+                      context: context,
+                      message: 'Please enter a valid email first',
+                      icon: CupertinoIcons.exclamationmark_triangle_fill,
+                      iconColor: Colors.redAccent,
+                    );
+                    return;
+                  }
+                  setState(() => _isSignUpMode = true);
+                },
+                child: Text(
+                  'New here? Create an Account  \u203a',
+                  style: TextStyle(
+                    fontFamily: 'GoogleSansFlex',
+                    color: _blue.withOpacity(0.9),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
-            ),
+            ],
             const SizedBox(height: 8),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildRoleInfoSection() {
-    return Column(
-      children: [
-        // Role icon
-        Icon(
-          CupertinoIcons.person_2_fill,
-          color: _blue.withOpacity(0.7),
-          size: 28,
-        ),
-        const SizedBox(height: 10),
-        Text(
-          'Your Lumina Lanka account determines your access level. '
-          'Staff accounts are assigned one of the following roles: '
-          'Council members receive full dashboard and administrative access. '
-          'Electricians can manage repair tasks and field assignments. '
-          'Markers can survey and record streetlight data.',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontFamily: 'GoogleSansFlex',
-            color: Colors.white.withOpacity(0.4),
-            fontSize: 12.5,
-            height: 1.6,
-          ),
-        ),
-        const SizedBox(height: 4),
-        GestureDetector(
-          onTap: () {},
-          child: const Text(
-            'Learn more about staff roles...',
-            style: TextStyle(
-              fontFamily: 'GoogleSansFlex',
-              color: _blue,
-              fontSize: 12.5,
-            ),
-          ),
-        ),
-      ],
     );
   }
 
@@ -447,18 +412,7 @@ class _LoginDialogState extends State<LoginDialog> {
                 letterSpacing: -0.5,
               ),
             ),
-            const SizedBox(height: 10),
-            // Subtitle
-            Text(
-              'You will be signed in to the Street Light\nManagement System.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontFamily: 'GoogleSansFlex',
-                color: Colors.white.withOpacity(0.45),
-                fontSize: 15,
-                height: 1.5,
-              ),
-            ),
+            
             const SizedBox(height: 32),
             // Combined email + password card
             Container(
@@ -654,17 +608,7 @@ class _LoginDialogState extends State<LoginDialog> {
                 letterSpacing: -0.5,
               ),
             ),
-            const SizedBox(height: 10),
-            Text(
-              'Your details will autofill when reporting issues.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontFamily: 'GoogleSansFlex',
-                color: Colors.white.withOpacity(0.45),
-                fontSize: 15,
-                height: 1.5,
-              ),
-            ),
+            
             const SizedBox(height: 28),
             // Combined fields card
             Container(

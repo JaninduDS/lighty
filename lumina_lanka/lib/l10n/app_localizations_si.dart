@@ -136,4 +136,108 @@ class AppLocalizationsSi extends AppLocalizations {
 
   @override
   String get manageStaff => 'කාර්ය මණ්ඩලය කළමනාකරණය';
+
+  @override
+  String get emergencyWarning => 'හදිසි අනතුරු ඇඟවීම';
+
+  @override
+  String get emergencyDesc =>
+      'කඩා වැටුණු විදුලි රැහැන් සහ අනතුරුදායක තත්වයන් සඳහා කරුණාකර වහාම 119 අමතන්න.';
+
+  @override
+  String get issueDetails => 'ගැටළුවේ විස්තර';
+
+  @override
+  String get whatsWrong => 'විදුලි පහනට ඇති දෝෂය කුමක්ද?';
+
+  @override
+  String get issueSingleOut => 'එක් පහනක් ක්‍රියා නොකරයි';
+
+  @override
+  String get issueFlickering => 'පහන නිවී නිවී දැල්වේ';
+
+  @override
+  String get issueDaytime => 'දහවල් කාලයේදීත් දැල්වේ';
+
+  @override
+  String get issueDim => 'ආලෝකය අඩුයි';
+
+  @override
+  String get issueMultipleOut => 'පහන් කිහිපයක් ක්‍රියා නොකරයි';
+
+  @override
+  String get issueLeaning => 'කණුව ඇලවී ඇත';
+
+  @override
+  String get issueDamaged => 'කණුවට හානි වී ඇත';
+
+  @override
+  String get streetlightDetails => 'විදුලි කණුවේ විස්තර';
+
+  @override
+  String get additionalInfo => 'අමතර තොරතුරු (විකල්ප)';
+
+  @override
+  String get egLandmarks => 'උදා: අසල ඇති ස්ථාන';
+
+  @override
+  String get uploadPhoto => 'ඡායාරූපයක් එක් කරන්න (විකල්ප)';
+
+  @override
+  String get contactInfo => 'සම්බන්ධතා තොරතුරු';
+
+  @override
+  String get followUpQ => 'අපට ඔබව සම්බන්ධ කරගත හැකිද?';
+
+  @override
+  String get fullName => 'සම්පූර්ණ නම';
+
+  @override
+  String get email => 'විද්‍යුත් තැපෑල';
+
+  @override
+  String get phoneOpt => 'දුරකථන අංකය (විකල්ප)';
+
+  @override
+  String get submitReport => 'වාර්තාව ඉදිරිපත් කරන්න';
+
+  @override
+  String get directions => 'මාර්ගය';
+
+  @override
+  String get copyId => 'ID පිටපත් කරන්න';
+
+  @override
+  String get about => 'පිළිබඳව';
+
+  @override
+  String get aboutDesc =>
+      'මෙම විදුලි කණුව නඩත්තු කරනු ලබන්නේ ප්‍රාදේශීය නගර සභාව මගිනි. හදිසි ගැටළු සඳහා කරුණාකර වාර්තා කරන්න බොත්තම භාවිතා කරන්න.';
+
+  @override
+  String get details => 'විස්තර';
+
+  @override
+  String get latitude => 'අක්ෂාංශ';
+
+  @override
+  String get longitude => 'දේශාංශ';
+
+  @override
+  String get powerDraw => 'විදුලි පරිභෝජනය';
+
+  @override
+  String get poleType => 'කණුවේ වර්ගය';
+
+  @override
+  String get resolve => 'නිරාකරණය';
+
+  @override
+  String get nearestStreetlight => 'ළඟම ඇති විදුලි කණුව';
+
+  @override
+  String get go => 'යන්න';
+
+  @override
+  String get locating => 'ස්ථානය සොයමින්...';
 }

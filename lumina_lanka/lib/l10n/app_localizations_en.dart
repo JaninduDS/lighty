@@ -136,4 +136,108 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get manageStaff => 'Manage Staff';
+
+  @override
+  String get emergencyWarning => 'Emergency Warning';
+
+  @override
+  String get emergencyDesc =>
+      'For downed powerlines, exposed wires, and hanging light fixtures, do NOT report here. Call the Council Emergency Line immediately at 119.';
+
+  @override
+  String get issueDetails => 'Issue Details';
+
+  @override
+  String get whatsWrong => 'What\'s wrong with the streetlight?';
+
+  @override
+  String get issueSingleOut => 'Single light out';
+
+  @override
+  String get issueFlickering => 'Streetlight is flickering';
+
+  @override
+  String get issueDaytime => 'Streetlight on during the day';
+
+  @override
+  String get issueDim => 'Light is dim';
+
+  @override
+  String get issueMultipleOut => 'Two or more lights out in row';
+
+  @override
+  String get issueLeaning => 'Pole is leaning';
+
+  @override
+  String get issueDamaged => 'Pole is damaged';
+
+  @override
+  String get streetlightDetails => 'Streetlight Details';
+
+  @override
+  String get additionalInfo => 'Additional information (optional)';
+
+  @override
+  String get egLandmarks => 'e.g. landmarks, side of street';
+
+  @override
+  String get uploadPhoto => 'Upload a Photo (optional)';
+
+  @override
+  String get contactInfo => 'Contact Information';
+
+  @override
+  String get followUpQ => 'Can we follow up with questions?';
+
+  @override
+  String get fullName => 'Full Name';
+
+  @override
+  String get email => 'Email';
+
+  @override
+  String get phoneOpt => 'Phone (Opt)';
+
+  @override
+  String get submitReport => 'Submit Report';
+
+  @override
+  String get directions => 'Directions';
+
+  @override
+  String get copyId => 'Copy ID';
+
+  @override
+  String get about => 'About';
+
+  @override
+  String get aboutDesc =>
+      'This street light is managed by the local municipal council. Routine maintenance is scheduled every 6 months. For immediate issues such as flickering or complete outage, please use the Report button.';
+
+  @override
+  String get details => 'Details';
+
+  @override
+  String get latitude => 'Latitude';
+
+  @override
+  String get longitude => 'Longitude';
+
+  @override
+  String get powerDraw => 'Power Draw';
+
+  @override
+  String get poleType => 'Pole Type';
+
+  @override
+  String get resolve => 'Resolve';
+
+  @override
+  String get nearestStreetlight => 'Nearest Streetlight';
+
+  @override
+  String get go => 'GO';
+
+  @override
+  String get locating => 'Locating...';
 }

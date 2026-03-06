@@ -21,6 +21,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:glassmorphism/glassmorphism.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 
 // Local Imports
 import '../../../core/auth/auth_provider.dart';
@@ -34,6 +35,7 @@ import 'widgets/search_wards_sidebar.dart';
 import 'widgets/street_view_widget.dart';
 import '../../../core/utils/app_notifications.dart';
 import '../../profile/presentation/profile_screen.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Main map screen with OpenStreetMap and Unified Bottom Sheet
 class MapScreen extends ConsumerStatefulWidget {
@@ -476,6 +478,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   Widget build(BuildContext context) {
     // Watch the current user's role
     final authState = ref.watch(authProvider);
+    final l10n = AppLocalizations.of(context)!;
     
     // Check if in "Mark Pole" mode (Index 1)
     final isMarkingPole = _selectedActionIndex == 1;
@@ -549,8 +552,52 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                   panBuffer: 1,
                 ),
               
-              // Markers Layer
-              MarkerLayer(markers: _buildMarkers()),
+              // Clustered Markers Layer
+              MarkerClusterLayerWidget(
+                options: MarkerClusterLayerOptions(
+                  maxClusterRadius: 25,
+                  size: const Size(44, 44),
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.all(50),
+                  maxZoom: 5, // At zoom level 5, clusters break apart into individual pins
+                  markers: _buildMarkers(),
+                  builder: (context, markers) {
+                    return Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1C1C1E).withOpacity(0.95), // Dark glass
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: const Color(0xFF0A84FF), // Blue ring
+                          width: 2.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.4),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                          BoxShadow(
+                            color: const Color(0xFF0A84FF).withOpacity(0.3),
+                            blurRadius: 8,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Text(
+                          markers.length.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            fontFamily: 'GoogleSansFlex',
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
             ],
           ),
           
@@ -1301,7 +1348,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  'Nearest Streetlight',
+                                  l10n.nearestStreetlight,
                                   style: TextStyle(
                                     fontFamily: 'GoogleSansFlex',
                                     color: wDark ? Colors.white : Colors.black87,
@@ -1338,10 +1385,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                                 color: const Color(0xFF34C759),
                                 borderRadius: BorderRadius.circular(14),
                               ),
-                              child: const Center(
+                              child: Center(
                                 child: Text(
-                                  'GO',
-                                  style: TextStyle(
+                                  l10n.go,
+                                  style: const TextStyle(
                                     fontFamily: 'GoogleSansFlex',
                                     color: Colors.white,
                                     fontSize: 20,
@@ -1386,9 +1433,9 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      const Text(
-                        'Locating...',
-                        style: TextStyle(color: Colors.white, fontSize: 13),
+                      Text(
+                        l10n.locating,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
                       ),
                     ],
                   ),

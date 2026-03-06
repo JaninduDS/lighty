@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/auth/auth_provider.dart';
 import '../../../../core/utils/app_notifications.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class PoleInfoSidebar extends ConsumerStatefulWidget {
   final Map<String, dynamic>? poleData;
@@ -87,6 +88,7 @@ class _PoleInfoSidebarState extends ConsumerState<PoleInfoSidebar> {
   Widget build(BuildContext context) {
     // Watch the authentication state to get the user's role
     final authState = ref.watch(authProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     return AnimatedPositioned(
       duration: const Duration(milliseconds: 350),
@@ -166,7 +168,7 @@ class _PoleInfoSidebarState extends ConsumerState<PoleInfoSidebar> {
                             children: [
                               Expanded(
                                 child: _buildActionButton(
-                                  label: 'Directions',
+                                  label: l10n.directions,
                                   icon: CupertinoIcons.arrow_turn_up_right,
                                   color: const Color(0xFF0A84FF),
                                   textColor: Colors.white,
@@ -187,7 +189,7 @@ class _PoleInfoSidebarState extends ConsumerState<PoleInfoSidebar> {
                               if (authState.role == AppRole.electrician && widget.poleData!['status'] != 'Working')
                                 Expanded(
                                   child: _buildActionButton(
-                                    label: 'Resolve',
+                                    label: l10n.resolve,
                                     icon: CupertinoIcons.checkmark_seal_fill,
                                     color: const Color(0xFF34C759), // Green
                                     textColor: Colors.white,
@@ -225,7 +227,7 @@ class _PoleInfoSidebarState extends ConsumerState<PoleInfoSidebar> {
                               else
                                 Expanded(
                                   child: _buildActionButton(
-                                    label: 'Report',
+                                    label: l10n.reportAnIssue,
                                     icon: CupertinoIcons.exclamationmark_triangle_fill,
                                     color: Colors.white.withValues(alpha: 0.1),
                                     textColor: Colors.white,
@@ -238,7 +240,7 @@ class _PoleInfoSidebarState extends ConsumerState<PoleInfoSidebar> {
                               const SizedBox(width: 8),
                               Expanded(
                                 child: _buildActionButton(
-                                  label: 'Copy ID',
+                                  label: l10n.copyId,
                                   icon: CupertinoIcons.doc_on_clipboard_fill,
                                   color: Colors.white.withValues(alpha: 0.1),
                                   textColor: Colors.white,
@@ -315,9 +317,9 @@ class _PoleInfoSidebarState extends ConsumerState<PoleInfoSidebar> {
                           const SizedBox(height: 24),
 
                           // About Section
-                          const Text(
-                            'About',
-                            style: TextStyle(
+                          Text(
+                            l10n.about,
+                            style: const TextStyle(
                               fontFamily: 'GoogleSansFlex',
                               fontSize: 20,
                               fontWeight: FontWeight.w600,
@@ -332,7 +334,7 @@ class _PoleInfoSidebarState extends ConsumerState<PoleInfoSidebar> {
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: Text(
-                              'This street light is managed by the local municipal council. Routine maintenance is scheduled every 6 months. For immediate issues such as flickering or complete outage, please use the Report button.',
+                              l10n.aboutDesc,
                               style: TextStyle(
                                 fontFamily: 'GoogleSansFlex',
                                 fontSize: 15,
@@ -345,9 +347,9 @@ class _PoleInfoSidebarState extends ConsumerState<PoleInfoSidebar> {
                           const SizedBox(height: 24),
 
                           // Details Section
-                          const Text(
-                            'Details',
-                            style: TextStyle(
+                          Text(
+                            l10n.details,
+                            style: const TextStyle(
                               fontFamily: 'GoogleSansFlex',
                               fontSize: 20,
                               fontWeight: FontWeight.w600,
@@ -362,22 +364,22 @@ class _PoleInfoSidebarState extends ConsumerState<PoleInfoSidebar> {
                             ),
                             child: Column(
                               children: [
-                                _buildDetailRow('Latitude', widget.poleData!['latitude'].toStringAsFixed(6)),
+                                _buildDetailRow(l10n.latitude, widget.poleData!['latitude'].toStringAsFixed(6)),
                                 _buildDivider(),
-                                _buildDetailRow('Longitude', widget.poleData!['longitude'].toStringAsFixed(6)),
+                                _buildDetailRow(l10n.longitude, widget.poleData!['longitude'].toStringAsFixed(6)),
                                 _buildDivider(),
-                                _buildDetailRow('Power Draw', _formatBulbType(widget.poleData!['bulb_type'] as String?)),
+                                _buildDetailRow(l10n.powerDraw, _formatBulbType(widget.poleData!['bulb_type'] as String?)),
                                 _buildDivider(),
-                                _buildDetailRow('Pole Type', _formatPoleType(widget.poleData!['pole_type'] as String?), isLast: true),
+                                _buildDetailRow(l10n.poleType, _formatPoleType(widget.poleData!['pole_type'] as String?), isLast: true),
                               ],
                             ),
                           ),
                           const SizedBox(height: 24),
 
                           // === RECENT REPORTS SECTION ===
-                          const Text(
-                            'Recent Reports',
-                            style: TextStyle(
+                          Text(
+                            l10n.recentReports,
+                            style: const TextStyle(
                               fontFamily: 'GoogleSansFlex',
                               fontSize: 20,
                               fontWeight: FontWeight.w600,

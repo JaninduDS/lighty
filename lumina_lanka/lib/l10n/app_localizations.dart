@@ -357,6 +357,210 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Manage Staff'**
   String get manageStaff;
+
+  /// No description provided for @emergencyWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency Warning'**
+  String get emergencyWarning;
+
+  /// No description provided for @emergencyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'For downed powerlines, exposed wires, and hanging light fixtures, do NOT report here. Call the Council Emergency Line immediately at 119.'**
+  String get emergencyDesc;
+
+  /// No description provided for @issueDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Issue Details'**
+  String get issueDetails;
+
+  /// No description provided for @whatsWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s wrong with the streetlight?'**
+  String get whatsWrong;
+
+  /// No description provided for @issueSingleOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Single light out'**
+  String get issueSingleOut;
+
+  /// No description provided for @issueFlickering.
+  ///
+  /// In en, this message translates to:
+  /// **'Streetlight is flickering'**
+  String get issueFlickering;
+
+  /// No description provided for @issueDaytime.
+  ///
+  /// In en, this message translates to:
+  /// **'Streetlight on during the day'**
+  String get issueDaytime;
+
+  /// No description provided for @issueDim.
+  ///
+  /// In en, this message translates to:
+  /// **'Light is dim'**
+  String get issueDim;
+
+  /// No description provided for @issueMultipleOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Two or more lights out in row'**
+  String get issueMultipleOut;
+
+  /// No description provided for @issueLeaning.
+  ///
+  /// In en, this message translates to:
+  /// **'Pole is leaning'**
+  String get issueLeaning;
+
+  /// No description provided for @issueDamaged.
+  ///
+  /// In en, this message translates to:
+  /// **'Pole is damaged'**
+  String get issueDamaged;
+
+  /// No description provided for @streetlightDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Streetlight Details'**
+  String get streetlightDetails;
+
+  /// No description provided for @additionalInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Additional information (optional)'**
+  String get additionalInfo;
+
+  /// No description provided for @egLandmarks.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. landmarks, side of street'**
+  String get egLandmarks;
+
+  /// No description provided for @uploadPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload a Photo (optional)'**
+  String get uploadPhoto;
+
+  /// No description provided for @contactInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact Information'**
+  String get contactInfo;
+
+  /// No description provided for @followUpQ.
+  ///
+  /// In en, this message translates to:
+  /// **'Can we follow up with questions?'**
+  String get followUpQ;
+
+  /// No description provided for @fullName.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Name'**
+  String get fullName;
+
+  /// No description provided for @email.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get email;
+
+  /// No description provided for @phoneOpt.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone (Opt)'**
+  String get phoneOpt;
+
+  /// No description provided for @submitReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit Report'**
+  String get submitReport;
+
+  /// No description provided for @directions.
+  ///
+  /// In en, this message translates to:
+  /// **'Directions'**
+  String get directions;
+
+  /// No description provided for @copyId.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy ID'**
+  String get copyId;
+
+  /// No description provided for @about.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get about;
+
+  /// No description provided for @aboutDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'This street light is managed by the local municipal council. Routine maintenance is scheduled every 6 months. For immediate issues such as flickering or complete outage, please use the Report button.'**
+  String get aboutDesc;
+
+  /// No description provided for @details.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get details;
+
+  /// No description provided for @latitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Latitude'**
+  String get latitude;
+
+  /// No description provided for @longitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Longitude'**
+  String get longitude;
+
+  /// No description provided for @powerDraw.
+  ///
+  /// In en, this message translates to:
+  /// **'Power Draw'**
+  String get powerDraw;
+
+  /// No description provided for @poleType.
+  ///
+  /// In en, this message translates to:
+  /// **'Pole Type'**
+  String get poleType;
+
+  /// No description provided for @resolve.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolve'**
+  String get resolve;
+
+  /// No description provided for @nearestStreetlight.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearest Streetlight'**
+  String get nearestStreetlight;
+
+  /// No description provided for @go.
+  ///
+  /// In en, this message translates to:
+  /// **'GO'**
+  String get go;
+
+  /// No description provided for @locating.
+  ///
+  /// In en, this message translates to:
+  /// **'Locating...'**
+  String get locating;
 }
 
 class _AppLocalizationsDelegate
