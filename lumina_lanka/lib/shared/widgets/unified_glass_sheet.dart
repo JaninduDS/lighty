@@ -314,8 +314,13 @@ class _UnifiedGlassSheetState extends State<UnifiedGlassSheet> {
                         color: isDark ? Colors.white38 : Colors.black38
                       ),
                       border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
                       isDense: true,
                       contentPadding: EdgeInsets.zero,
+                      filled: true,
+                      fillColor: Colors.transparent,
+                      hoverColor: Colors.transparent,
                     ),
                     onChanged: _onSearchChanged,
                     onSubmitted: _onSearchSubmitted,

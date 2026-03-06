@@ -416,8 +416,13 @@ class _WebSidebarState extends ConsumerState<WebSidebar> {
                 hintText: l10n.search,
                 hintStyle: TextStyle(fontFamily: 'GoogleSansFlex', color: isDark ? Colors.white54 : Colors.black54, fontSize: 13),
                 border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
                 isDense: true,
                 contentPadding: EdgeInsets.zero,
+                filled: true,
+                fillColor: Colors.transparent,
+                hoverColor: Colors.transparent,
               ),
               onChanged: (value) {
                 if (_debounce?.isActive ?? false) _debounce!.cancel();

@@ -584,6 +584,11 @@ class _ReportContentState extends State<ReportContent> {
             decoration: const InputDecoration(
               isDense: true,
               border: InputBorder.none,
+              // enabledBorder: InputBorder.none,
+              // focusedBorder: InputBorder.none,
+              filled: true,
+              fillColor: Colors.transparent,
+              hoverColor: Colors.transparent,
               contentPadding: EdgeInsets.symmetric(vertical: 4),
             ),
           ),
