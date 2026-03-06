@@ -57,7 +57,7 @@ class _CouncilDashboardState extends State<CouncilDashboard> {
       final sevenDaysAgo = DateTime.now().subtract(const Duration(days: 6));
       final reportsData = await supabase
           .from('reports')
-          .select('created_at, status')
+          .select('created_at, status, issue_type') // <--- ADD issue_type
           .gte('created_at', sevenDaysAgo.toIso8601String())
           .order('created_at', ascending: false);
 

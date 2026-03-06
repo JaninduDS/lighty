@@ -135,6 +135,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               'status': pole['status'] as String,
               'latitude': pole['latitude'] as double,
               'longitude': pole['longitude'] as double,
+              'bulb_type': pole['bulb_type'], 
+              'pole_type': pole['pole_type'],
             });
           }
         });
@@ -1068,6 +1070,11 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 isSidebarExpanded: _isWebSidebarExpanded,
                 onExpand: () {
                   setState(() => _isStreetViewExpanded = !_isStreetViewExpanded);
+                  if (_isStreetViewExpanded) {
+                      _selectedPole = null;
+                      _expandedPoleId = null;
+                      _isReportPanelOpen = false;
+                    }
                 },
                 onDone: () {
                   setState(() {
@@ -1101,7 +1108,13 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                       child: GestureDetector(
                         onTap: () {
                           HapticFeedback.mediumImpact();
-                          setState(() => _showStreetView = true);
+                          setState(() {
+                            _showStreetView = true;
+                            // ADD THIS: Close sidebars when opening Street View
+                            _selectedPole = null;
+                            _expandedPoleId = null;
+                            _isReportPanelOpen = false;
+                          });
                         },
                         child: GlassmorphicContainer(
                           width: 48,
@@ -1683,6 +1696,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                   'status': status,
                   'latitude': lat,
                   'longitude': lng,
+                  'bulb_type': pole['bulb_type'],
+                  'pole_type': pole['pole_type'],
                 };
                 _isSearchWardsOpen = false;
               });

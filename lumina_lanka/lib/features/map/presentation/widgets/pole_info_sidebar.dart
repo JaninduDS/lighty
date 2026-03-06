@@ -364,7 +364,11 @@ class _PoleInfoSidebarState extends ConsumerState<PoleInfoSidebar> {
                               children: [
                                 _buildDetailRow('Latitude', widget.poleData!['latitude'].toStringAsFixed(6)),
                                 _buildDivider(),
-                                _buildDetailRow('Longitude', widget.poleData!['longitude'].toStringAsFixed(6), isLast: true),
+                                _buildDetailRow('Longitude', widget.poleData!['longitude'].toStringAsFixed(6)),
+                                _buildDivider(),
+                                _buildDetailRow('Power Draw', _formatBulbType(widget.poleData!['bulb_type'] as String?)),
+                                _buildDivider(),
+                                _buildDetailRow('Pole Type', _formatPoleType(widget.poleData!['pole_type'] as String?), isLast: true),
                               ],
                             ),
                           ),
@@ -627,5 +631,20 @@ class _PoleInfoSidebarState extends ConsumerState<PoleInfoSidebar> {
         ],
       ),
     );
+  }
+  String _formatBulbType(String? type) {
+    if (type == null || type.isEmpty) return 'N/A';
+    if (type == 'led_30w') return '30W LED';
+    if (type == 'led_50w') return '50W LED';
+    if (type == 'sodium') return 'Sodium Vapor';
+    if (type == 'cfl') return 'CFL';
+    return type[0].toUpperCase() + type.substring(1);
+  }
+
+  String _formatPoleType(String? type) {
+    if (type == null || type.isEmpty) return 'N/A';
+    if (type == 'concrete') return 'Concrete';
+    if (type == 'iron') return 'Iron';
+    return type[0].toUpperCase() + type.substring(1);
   }
 }
