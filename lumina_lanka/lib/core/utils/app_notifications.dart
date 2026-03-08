@@ -110,9 +110,9 @@ class _NotificationWidgetState extends State<_NotificationWidget>
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      top: 24.0, // Top margin
-      left: 24.0,
-      right: 24.0,
+      top: 16.0, // Top margin
+      left: 0,     // Changed from 24 to 0
+      right: 0,    // Changed from 24 to 0 to allow true centering
       child: SafeArea(
         child: Align(
           alignment: Alignment.topCenter,
@@ -130,10 +130,11 @@ class _NotificationWidgetState extends State<_NotificationWidget>
                   },
                   onTap: _dismiss,
                   child: Container(
-                    width: 400, // Max width similar to desktop/iPad notifications
+                    // 1. REDUCED MAX WIDTH: Forces it to stay safely between the buttons
+                    constraints: const BoxConstraints(maxWidth: 230), 
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1C1C1E).withOpacity(0.7),
-                      borderRadius: BorderRadius.circular(20),
+                      color: const Color(0xFF1C1C1E).withOpacity(0.85),
+                      borderRadius: BorderRadius.circular(100), 
                       border: Border.all(
                         color: Colors.white.withOpacity(0.1),
                         width: 1,
@@ -141,51 +142,53 @@ class _NotificationWidgetState extends State<_NotificationWidget>
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withOpacity(0.3),
-                          blurRadius: 30,
-                          offset: const Offset(0, 10),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
                         ),
                       ],
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(100),
                       child: BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
                         child: Padding(
-                          padding: const EdgeInsets.all(16.0),
+                          // 2. TIGHTER PADDING
+                          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0), 
                           child: Row(
+                            mainAxisSize: MainAxisSize.min, 
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               // Icon
                               Container(
-                                width: 40,
-                                height: 40,
+                                width: 28, 
+                                height: 28,
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.1),
+                                  color: (widget.iconColor ?? Colors.white).withOpacity(0.2),
                                   shape: BoxShape.circle,
                                 ),
                                 child: Icon(
                                   widget.icon ?? CupertinoIcons.bell_fill,
                                   color: widget.iconColor ?? Colors.white,
-                                  size: 20,
+                                  size: 14, 
                                 ),
                               ),
-                              const SizedBox(width: 14),
+                              // 3. REDUCED SPACING
+                              const SizedBox(width: 8), 
                               // Content
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      widget.message,
-                                      style: TextStyle(
-                                        fontFamily: 'GoogleSansFlex',
-                                        fontSize: 14,
-                                        color: Colors.white.withOpacity(0.85),
-                                        height: 1.3,
-                                      ),
-                                    ),
-                                  ],
+                              Flexible( 
+                                child: Text(
+                                  widget.message,
+                                  // 4. CENTERED AND SLIGHTLY SMALLER TEXT
+                                  textAlign: TextAlign.center, 
+                                  style: TextStyle(
+                                    fontFamily: 'GoogleSansFlex',
+                                    fontSize: 12, 
+                                    color: Colors.white.withOpacity(0.9),
+                                    fontWeight: FontWeight.w500,
+                                    height: 1.2, // Keeps lines tight if it wraps
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],
