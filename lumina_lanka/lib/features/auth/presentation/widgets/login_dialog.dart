@@ -34,17 +34,70 @@ class _LoginDialogState extends State<LoginDialog> {
   Future<void> _handleLogin() async {
     if (_passwordController.text.trim().isEmpty) return;
     setState(() => _isLoading = true);
+    
     try {
-      await Supabase.instance.client.auth.signInWithPassword(
+      // 1. Attempt to sign in
+      final res = await Supabase.instance.client.auth.signInWithPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
+
+      if (res.user != null) {
+        // 2. Fetch the user's role from the profiles table
+        String role = 'public';
+        try {
+          final profileData = await Supabase.instance.client
+              .from('profiles')
+              .select('role')
+              .eq('id', res.user!.id)
+              .maybeSingle();
+              
+          if (profileData != null) {
+            role = profileData['role'] as String;
+          }
+        } catch (_) {}
+
+        final isStaffRole = ['council', 'electrician', 'marker'].contains(role);
+
+        // 3. Verify they are using the correct portal
+        if (widget.isStaffMode && !isStaffRole) {
+          // Public user trying to use Staff Login
+          await Supabase.instance.client.auth.signOut();
+          if (mounted) {
+            AppNotifications.show(
+              context: context,
+              message: 'Access Denied: This account does not have staff privileges.',
+              icon: CupertinoIcons.shield_slash_fill,
+              iconColor: Colors.redAccent,
+            );
+            setState(() => _isLoading = false);
+          }
+          return; // Stop here, don't close the dialog
+          
+        } else if (!widget.isStaffMode && isStaffRole) {
+          // Staff member trying to use Public Login
+          await Supabase.instance.client.auth.signOut();
+          if (mounted) {
+            AppNotifications.show(
+              context: context,
+              message: 'Please use the Staff Login portal for staff accounts.',
+              icon: CupertinoIcons.exclamationmark_triangle_fill,
+              iconColor: Colors.orangeAccent,
+            );
+            setState(() => _isLoading = false);
+          }
+          return; // Stop here, don't close the dialog
+        }
+      }
+
+      // 4. If everything matches, close the dialog and let them in!
       if (mounted) Navigator.pop(context);
+      
     } catch (e) {
       if (mounted) {
         AppNotifications.show(
           context: context,
-          message: 'Login Failed: ${e.toString()}',
+          message: 'Login Failed: Invalid email or password.',
           icon: CupertinoIcons.exclamationmark_triangle_fill,
           iconColor: Colors.redAccent,
         );

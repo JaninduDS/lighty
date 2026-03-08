@@ -1355,110 +1355,114 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             duration: const Duration(milliseconds: 400),
             curve: Curves.easeOutCubic,
             bottom: _showNearestPoleButton && !_isReportPanelOpen
-                ? MediaQuery.of(context).padding.bottom + 16 // Match search bar padding
-                : -150, // Slide off-screen when hidden
-            left: 16,
-            right: 16, // Stretch edge-to-edge like the search bar
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(40),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.4),
-                    blurRadius: 40,
-                    spreadRadius: -5,
-                    offset: const Offset(0, 20), // Deep Flighty shadow
+                ? MediaQuery.of(context).padding.bottom + 16 
+                : -150, 
+            left: 0,  // Changed to 0 to allow centering
+            right: 0, // Changed to 0 to allow centering
+            child: Center( // <-- ADDED CENTER
+              child: Container(
+                // <-- ADDED WIDTH CONSTRAINT (Max 400px on web, screen width - 32 on mobile)
+                width: min(400.0, MediaQuery.of(context).size.width - 32), 
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(40),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.4),
+                      blurRadius: 40,
+                      spreadRadius: -5,
+                      offset: const Offset(0, 20), 
+                    ),
+                  ],
+                ),
+                child: GlassmorphicContainer(
+                  width: double.infinity,
+                  height: 88,
+                  borderRadius: 40, 
+                  blur: 45, 
+                  alignment: Alignment.center,
+                  border: 1.0,
+                  linearGradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: wDark 
+                      ? [const Color(0xFF1C1C1E).withOpacity(0.75), const Color(0xFF121212).withOpacity(0.65)]
+                      : [Colors.white.withOpacity(0.90), Colors.white.withOpacity(0.80)],
                   ),
-                ],
-              ),
-              child: GlassmorphicContainer(
-                width: double.infinity,
-                height: 88,
-                borderRadius: 40, // Extreme squircle
-                blur: 45, // Heavy vibrancy
-                alignment: Alignment.center,
-                border: 1.0,
-                linearGradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: wDark 
-                    ? [const Color(0xFF1C1C1E).withOpacity(0.75), const Color(0xFF121212).withOpacity(0.65)]
-                    : [Colors.white.withOpacity(0.90), Colors.white.withOpacity(0.80)],
-                ),
-                borderGradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: wDark
-                    ? [Colors.white.withOpacity(0.25), Colors.white.withOpacity(0.05)]
-                    : [Colors.black.withOpacity(0.15), Colors.black.withOpacity(0.02)],
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                  child: Row(
-                    children: [
-                      // Left: Text info
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              l10n.nearestStreetlight,
-                              style: TextStyle(
-                                fontFamily: 'GoogleSansFlex',
-                                color: wDark ? Colors.white : Colors.black87,
-                                fontSize: 17,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            if (_nearestPoleLocation.isNotEmpty) ...[
-                              const SizedBox(height: 2),
+                  borderGradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: wDark
+                      ? [Colors.white.withOpacity(0.25), Colors.white.withOpacity(0.05)]
+                      : [Colors.black.withOpacity(0.15), Colors.black.withOpacity(0.02)],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    child: Row(
+                      children: [
+                        // Left: Text info
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
                               Text(
-                                _nearestPoleLocation,
+                                l10n.nearestStreetlight,
                                 style: TextStyle(
                                   fontFamily: 'GoogleSansFlex',
-                                  color: wDark ? Colors.white.withOpacity(0.55) : Colors.black54,
-                                  fontSize: 13,
+                                  color: wDark ? Colors.white : Colors.black87,
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w700,
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                               ),
-                            ],
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      // Right: Glowing GO button
-                      GestureDetector(
-                        onTap: _navigateToNearestPole,
-                        child: Container(
-                          width: 56,
-                          height: 56,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF34C759), // Vibrant Apple Green
-                            shape: BoxShape.circle, // Perfect circle
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF34C759).withOpacity(0.4), // Green glow
-                                blurRadius: 16,
-                                offset: const Offset(0, 6),
-                              ),
+                              if (_nearestPoleLocation.isNotEmpty) ...[
+                                const SizedBox(height: 2),
+                                Text(
+                                  _nearestPoleLocation,
+                                  style: TextStyle(
+                                    fontFamily: 'GoogleSansFlex',
+                                    color: wDark ? Colors.white.withOpacity(0.55) : Colors.black54,
+                                    fontSize: 13,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
                             ],
                           ),
-                          child: Center(
-                            child: Text(
-                              l10n.go,
-                              style: const TextStyle(
-                                fontFamily: 'GoogleSansFlex',
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w800,
+                        ),
+                        const SizedBox(width: 12),
+                        // Right: Glowing GO button
+                        GestureDetector(
+                          onTap: _navigateToNearestPole,
+                          child: Container(
+                            width: 56,
+                            height: 56,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF34C759), 
+                              shape: BoxShape.circle, 
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF34C759).withOpacity(0.4), 
+                                  blurRadius: 16,
+                                  offset: const Offset(0, 6),
+                                ),
+                              ],
+                            ),
+                            child: Center(
+                              child: Text(
+                                l10n.go,
+                                style: const TextStyle(
+                                  fontFamily: 'GoogleSansFlex',
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
