@@ -10,6 +10,10 @@ import '../../core/auth/auth_provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
 import '../../features/auth/presentation/widgets/login_dialog.dart';
+import '../../features/dashboard/presentation/council_dashboard.dart';
+import '../../features/dashboard/presentation/staff_management_screen.dart';
+import '../../features/tasks/presentation/electrician_tasks_screen.dart';
+import '../../features/settings/presentation/settings_screen.dart';
 
 class MobileGlassDrawer extends ConsumerWidget {
   const MobileGlassDrawer({super.key});
@@ -137,14 +141,50 @@ class MobileGlassDrawer extends ConsumerWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     children: [
                       if (authState.role == AppRole.council) ...[
-                        _buildDrawerItem(context, icon: CupertinoIcons.chart_bar_alt_fill, color: const Color(0xFF34C759), title: l10n.councilDashboard, onTap: () { Navigator.pop(context); Navigator.pushNamed(context, '/dashboard'); }),
-                        _buildDrawerItem(context, icon: CupertinoIcons.person_2_alt, color: const Color(0xFF9E47FF), title: l10n.manageStaff, onTap: () { Navigator.pop(context); Navigator.pushNamed(context, '/staff'); }),
+                        _buildDrawerItem(
+                          context, 
+                          icon: CupertinoIcons.chart_bar_alt_fill, 
+                          color: const Color(0xFF34C759), 
+                          title: l10n.councilDashboard, 
+                          onTap: () { 
+                            Navigator.pop(context); // Close drawer
+                            Navigator.push(context, MaterialPageRoute(builder: (_) => const CouncilDashboard())); 
+                          }
+                        ),
+                        _buildDrawerItem(
+                          context, 
+                          icon: CupertinoIcons.person_2_alt, 
+                          color: const Color(0xFF9E47FF), 
+                          title: l10n.manageStaff, 
+                          onTap: () { 
+                            Navigator.pop(context); 
+                            Navigator.push(context, MaterialPageRoute(builder: (_) => const StaffManagementScreen())); 
+                          }
+                        ),
                       ],
                       if (authState.role == AppRole.electrician) ...[
-                        _buildDrawerItem(context, icon: CupertinoIcons.bolt_fill, color: const Color(0xFFFFCC00), title: l10n.myTasks, onTap: () { Navigator.pop(context); Navigator.pushNamed(context, '/tasks'); }),
+                        _buildDrawerItem(
+                          context, 
+                          icon: CupertinoIcons.bolt_fill, 
+                          color: const Color(0xFFFFCC00), 
+                          title: l10n.myTasks, 
+                          onTap: () { 
+                            Navigator.pop(context); 
+                            Navigator.push(context, MaterialPageRoute(builder: (_) => const ElectricianTasksScreen())); 
+                          }
+                        ),
                       ],
                       
-                      _buildDrawerItem(context, icon: CupertinoIcons.settings, color: Colors.grey, title: l10n.settings, onTap: () { Navigator.pop(context); Navigator.pushNamed(context, '/settings'); }),
+                      _buildDrawerItem(
+                        context, 
+                        icon: CupertinoIcons.settings, 
+                        color: Colors.grey, 
+                        title: l10n.settings, 
+                        onTap: () { 
+                          Navigator.pop(context); 
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen())); 
+                        }
+                      ),
                     ],
                   ),
                 ),

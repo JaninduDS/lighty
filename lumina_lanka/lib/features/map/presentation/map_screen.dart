@@ -1352,106 +1352,113 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
           // === NEAREST STREETLIGHT CARD (Bottom Center) ===
           AnimatedPositioned(
-            duration: const Duration(milliseconds: 350),
+            duration: const Duration(milliseconds: 400),
             curve: Curves.easeOutCubic,
             bottom: _showNearestPoleButton && !_isReportPanelOpen
-                ? MediaQuery.of(context).padding.bottom + 24
-                : -120, // Slide off-screen when hidden
-            left: 0,
-            right: 0,
-            child: Center(
-              child: MouseRegion(
-                cursor: SystemMouseCursors.click,
-                  child: Container(
-                  width: 340,
-                  decoration: BoxDecoration(
-                    color: wDark
-                        ? const Color(0xFF1C1C1E).withValues(alpha: 0.9)
-                        : Colors.white.withValues(alpha: 0.95),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: wDark
-                          ? Colors.white.withValues(alpha: 0.12)
-                          : Colors.black.withValues(alpha: 0.08),
-                      width: 1,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.3),
-                        blurRadius: 24,
-                        offset: const Offset(0, 8),
+                ? MediaQuery.of(context).padding.bottom + 16 // Match search bar padding
+                : -150, // Slide off-screen when hidden
+            left: 16,
+            right: 16, // Stretch edge-to-edge like the search bar
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(40),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.4),
+                    blurRadius: 40,
+                    spreadRadius: -5,
+                    offset: const Offset(0, 20), // Deep Flighty shadow
+                  ),
+                ],
+              ),
+              child: GlassmorphicContainer(
+                width: double.infinity,
+                height: 88,
+                borderRadius: 40, // Extreme squircle
+                blur: 45, // Heavy vibrancy
+                alignment: Alignment.center,
+                border: 1.0,
+                linearGradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: wDark 
+                    ? [const Color(0xFF1C1C1E).withOpacity(0.75), const Color(0xFF121212).withOpacity(0.65)]
+                    : [Colors.white.withOpacity(0.90), Colors.white.withOpacity(0.80)],
+                ),
+                borderGradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: wDark
+                    ? [Colors.white.withOpacity(0.25), Colors.white.withOpacity(0.05)]
+                    : [Colors.black.withOpacity(0.15), Colors.black.withOpacity(0.02)],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  child: Row(
+                    children: [
+                      // Left: Text info
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              l10n.nearestStreetlight,
+                              style: TextStyle(
+                                fontFamily: 'GoogleSansFlex',
+                                color: wDark ? Colors.white : Colors.black87,
+                                fontSize: 17,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            if (_nearestPoleLocation.isNotEmpty) ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                _nearestPoleLocation,
+                                style: TextStyle(
+                                  fontFamily: 'GoogleSansFlex',
+                                  color: wDark ? Colors.white.withOpacity(0.55) : Colors.black54,
+                                  fontSize: 13,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // Right: Glowing GO button
+                      GestureDetector(
+                        onTap: _navigateToNearestPole,
+                        child: Container(
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF34C759), // Vibrant Apple Green
+                            shape: BoxShape.circle, // Perfect circle
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF34C759).withOpacity(0.4), // Green glow
+                                blurRadius: 16,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Text(
+                              l10n.go,
+                              style: const TextStyle(
+                                fontFamily: 'GoogleSansFlex',
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: BackdropFilter(
-                      filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
-                        children: [
-                          // Left: Text info
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  l10n.nearestStreetlight,
-                                  style: TextStyle(
-                                    fontFamily: 'GoogleSansFlex',
-                                    color: wDark ? Colors.white : Colors.black87,
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                if (_nearestPoleLocation.isNotEmpty) ...[
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    _nearestPoleLocation,
-                                    style: TextStyle(
-                                      fontFamily: 'GoogleSansFlex',
-                                      color: wDark
-                                          ? Colors.white.withValues(alpha: 0.55)
-                                          : Colors.black54,
-                                      fontSize: 13,
-                                    ),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          // Right: GO button
-                          GestureDetector(
-                            onTap: _navigateToNearestPole,
-                            child: Container(
-                              width: 56,
-                              height: 56,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF34C759),
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  l10n.go,
-                                  style: const TextStyle(
-                                    fontFamily: 'GoogleSansFlex',
-                                    color: Colors.white,
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                     ),
-                    ),
                   ),
                 ),
               ),
