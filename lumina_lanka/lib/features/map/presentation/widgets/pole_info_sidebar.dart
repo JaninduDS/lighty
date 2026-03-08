@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -173,14 +174,19 @@ class _PoleInfoSidebarState extends ConsumerState<PoleInfoSidebar> {
                                   color: const Color(0xFF0A84FF),
                                   textColor: Colors.white,
                                   onTap: () async {
-                                    // Open Google Maps / Apple Maps
-                                    final lat = widget.poleData!['latitude'];
-                                    final lng = widget.poleData!['longitude'];
-                                    final url = Uri.parse('https://www.google.com/maps/search/?api=1&query=$lat,$lng');
-                                    if (await canLaunchUrl(url)) {
-                                      await launchUrl(url, mode: LaunchMode.externalApplication);
-                                    }
-                                  },
+                                // Open Google Maps / Apple Maps
+                                final lat = widget.poleData!['latitude'];
+                                final lng = widget.poleData!['longitude'];
+                                final url = Uri.parse('https://www.google.com/maps/search/?api=1&query=$lat,$lng');
+                                
+                                try {
+                                  // We remove canLaunchUrl because it often returns false on 
+                                  // modern Android/Web even when the action is actually possible.
+                                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                                } catch (e) {
+                                  debugPrint('Could not launch maps: $e');
+                                }
+                              },
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -648,5 +654,278 @@ class _PoleInfoSidebarState extends ConsumerState<PoleInfoSidebar> {
     if (type == 'concrete') return 'Concrete';
     if (type == 'iron') return 'Iron';
     return type[0].toUpperCase() + type.substring(1);
+  }
+}
+
+// ============================================================================
+// MOBILE POLE INFO BOTTOM SHEET
+// ============================================================================
+class MobilePoleInfoSheet extends ConsumerStatefulWidget {
+  final Map<String, dynamic> poleData;
+  final VoidCallback onClose;
+  final VoidCallback onReportTapped;
+
+  const MobilePoleInfoSheet({
+    super.key,
+    required this.poleData,
+    required this.onClose,
+    required this.onReportTapped,
+  });
+
+  @override
+  ConsumerState<MobilePoleInfoSheet> createState() => _MobilePoleInfoSheetState();
+}
+
+class _MobilePoleInfoSheetState extends ConsumerState<MobilePoleInfoSheet> {
+  List<dynamic> _reports = [];
+  bool _isLoadingReports = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchReports();
+  }
+
+  Future<void> _fetchReports() async {
+    setState(() => _isLoadingReports = true);
+    try {
+      final data = await Supabase.instance.client
+          .from('reports')
+          .select()
+          .eq('pole_id', widget.poleData['id'])
+          .order('created_at', ascending: false);
+      if (mounted) {
+        setState(() {
+          _reports = data;
+          _isLoadingReports = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoadingReports = false);
+    }
+  }
+
+  String _formatBulbType(String? type) {
+    if (type == null || type.isEmpty) return 'N/A';
+    if (type == 'led_30w') return '30W LED';
+    if (type == 'led_50w') return '50W LED';
+    if (type == 'sodium') return 'Sodium Vapor';
+    if (type == 'cfl') return 'CFL';
+    return type[0].toUpperCase() + type.substring(1);
+  }
+
+  String _formatPoleType(String? type) {
+    if (type == null || type.isEmpty) return 'N/A';
+    if (type == 'concrete') return 'Concrete';
+    if (type == 'iron') return 'Iron';
+    return type[0].toUpperCase() + type.substring(1);
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'Working': return const Color(0xFF34C759);
+      case 'Reported': return const Color(0xFFFF3B30);
+      case 'Maintenance': return const Color(0xFFFF9500);
+      default: return Colors.white;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider);
+    final l10n = AppLocalizations.of(context)!;
+
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.85),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1C1C1E).withOpacity(0.85),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border.all(color: Colors.white.withOpacity(0.1)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 12),
+              Container(
+                width: 40,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Street Light #${widget.poleData['id'].toString().substring(0, 5)}',
+                        style: const TextStyle(fontFamily: 'GoogleSansFlex', fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Status · ${widget.poleData['status']}',
+                        style: TextStyle(fontFamily: 'GoogleSansFlex', fontSize: 15, color: Colors.white.withOpacity(0.7)),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Action Buttons
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildActionButton(
+                              label: l10n.directions,
+                              icon: CupertinoIcons.arrow_turn_up_right,
+                              color: const Color(0xFF0A84FF),
+                              onTap: () async {
+                                final url = Uri.parse('https://www.google.com/maps/search/?api=1&query=${widget.poleData['latitude']},${widget.poleData['longitude']}');
+                                try {
+                                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                                } catch (e) {
+                                  debugPrint('Could not launch maps: $e');
+                                }
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          if (authState.role == AppRole.electrician && widget.poleData['status'] != 'Working')
+                            Expanded(
+                              child: _buildActionButton(
+                                label: l10n.markAsResolved,
+                                icon: CupertinoIcons.checkmark_seal_fill,
+                                color: const Color(0xFF34C759),
+                                onTap: () async {
+                                  await Supabase.instance.client.from('poles').update({'status': 'Working'}).eq('id', widget.poleData['id']);
+                                  if (mounted) {
+                                    AppNotifications.show(context: context, message: 'Pole marked as Working!', icon: CupertinoIcons.check_mark_circled_solid, iconColor: const Color(0xFF34C759));
+                                    widget.onClose();
+                                  }
+                                },
+                              ),
+                            )
+                          else
+                            Expanded(
+                              child: _buildActionButton(
+                                label: l10n.reportAnIssue,
+                                icon: CupertinoIcons.exclamationmark_triangle_fill,
+                                color: Colors.white.withOpacity(0.1),
+                                onTap: widget.onReportTapped,
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Details
+                      Text(l10n.details, style: const TextStyle(fontFamily: 'GoogleSansFlex', fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                      const SizedBox(height: 12),
+                      Container(
+                        decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(16)),
+                        child: Column(
+                          children: [
+                            _buildDetailRow(l10n.latitude, widget.poleData['latitude'].toStringAsFixed(6)),
+                            Divider(color: Colors.white.withOpacity(0.1), height: 1),
+                            _buildDetailRow(l10n.longitude, widget.poleData['longitude'].toStringAsFixed(6)),
+                            Divider(color: Colors.white.withOpacity(0.1), height: 1),
+                            _buildDetailRow(l10n.powerDraw, _formatBulbType(widget.poleData['bulb_type'])),
+                            Divider(color: Colors.white.withOpacity(0.1), height: 1),
+                            _buildDetailRow(l10n.poleType, _formatPoleType(widget.poleData['pole_type'])),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Recent Reports
+                      Text(l10n.recentReports, style: const TextStyle(fontFamily: 'GoogleSansFlex', fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                      const SizedBox(height: 12),
+                      if (_isLoadingReports)
+                        const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator(color: Color(0xFF0A84FF))))
+                      else if (_reports.isEmpty)
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(16)),
+                          child: Text(l10n.noReportsFound, style: TextStyle(fontFamily: 'GoogleSansFlex', color: Colors.white.withOpacity(0.5)), textAlign: TextAlign.center),
+                        )
+                      else
+                        Container(
+                          decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(16)),
+                          child: ListView.separated(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            padding: EdgeInsets.zero,
+                            itemCount: _reports.length,
+                            separatorBuilder: (_, __) => Divider(color: Colors.white.withOpacity(0.1), height: 1),
+                            itemBuilder: (context, index) {
+                              final report = _reports[index];
+                              final isPending = report['status'] == 'Pending';
+                              return Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(isPending ? CupertinoIcons.exclamationmark_triangle_fill : CupertinoIcons.check_mark_circled_solid, color: isPending ? const Color(0xFFFF3B30) : const Color(0xFF34C759), size: 16),
+                                        const SizedBox(width: 8),
+                                        Expanded(child: Text(report['issue_type'] ?? 'Unknown', style: const TextStyle(fontFamily: 'GoogleSansFlex', color: Colors.white, fontWeight: FontWeight.w600))),
+                                        Text(report['status'], style: TextStyle(fontFamily: 'GoogleSansFlex', color: isPending ? const Color(0xFFFF3B30) : const Color(0xFF34C759), fontSize: 12, fontWeight: FontWeight.bold)),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text('Reported by ${report['name'] ?? 'Anonymous'}', style: TextStyle(fontFamily: 'GoogleSansFlex', color: Colors.white.withOpacity(0.6), fontSize: 13)),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      const SizedBox(height: 32),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButton({required String label, required IconData icon, required Color color, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(12)),
+        child: Column(
+          children: [
+            Icon(icon, color: Colors.white, size: 20),
+            const SizedBox(height: 4),
+            Text(label, style: const TextStyle(fontFamily: 'GoogleSansFlex', color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(fontFamily: 'GoogleSansFlex', color: Colors.white, fontSize: 15)),
+          Text(value, style: TextStyle(fontFamily: 'GoogleSansFlex', color: Colors.white.withOpacity(0.6), fontSize: 15)),
+        ],
+      ),
+    );
   }
 }

@@ -216,56 +216,79 @@ class _UnifiedGlassSheetState extends State<UnifiedGlassSheet> {
         width: targetWidth,
         height: _currentHeight,
         alignment: Alignment.topCenter,
-        child: GlassmorphicContainer(
-          width: targetWidth,
-          height: _currentHeight,
-          borderRadius: _currentHeight == _minHeight ? _minHeight / 2 : dynamicRadius, // Perfect Pill when collapsed
-          blur: 35, // True iOS-style thick acrylic blur 
-          alignment: Alignment.topCenter, // Align content to start at top and grow down
-          border: 1.5,
-          linearGradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: isDark 
-              ? [
-                  const Color(0xFF1C1C1E).withValues(alpha: 0.65), // iOS System Elevated Background
-                  const Color(0xFF1C1C1E).withValues(alpha: 0.55),
-                ]
-              : [
-                  Colors.white.withValues(alpha: 0.85), // Light mode glass
-                  Colors.white.withValues(alpha: 0.75),
-                ],
+        child: Container(
+          // FLIGHTY SHADOW
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(_currentHeight == _minHeight ? 40 : dynamicRadius),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.4),
+                blurRadius: 40,
+                spreadRadius: -5,
+                offset: const Offset(0, 20),
+              ),
+            ],
           ),
-          borderGradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: isDark
-              ? [
-                  Colors.white.withValues(alpha: 0.15),
-                  Colors.white.withValues(alpha: 0.05),
-                ]
-              : [
-                  Colors.black.withValues(alpha: 0.15),
-                  Colors.black.withValues(alpha: 0.05),
-                ],
-          ),
-          child: Column(
+          child: GlassmorphicContainer(
+            width: targetWidth,
+            height: _currentHeight,
+            borderRadius: _currentHeight == _minHeight ? 40 : dynamicRadius, // 40px for extreme squircle
+            blur: 45, // Massive blur for Flighty vibrancy
+            alignment: Alignment.topCenter,
+            border: 1.0, // Thinner, sleeker border
+            linearGradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isDark 
+                ? [
+                    const Color(0xFF1C1C1E).withOpacity(0.75), // Darker, richer glass
+                    const Color(0xFF121212).withOpacity(0.65),
+                  ]
+                : [
+                    Colors.white.withOpacity(0.90),
+                    Colors.white.withOpacity(0.80),
+                  ],
+            ),
+            borderGradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isDark
+                ? [
+                    Colors.white.withOpacity(0.25), // Brighter top edge to catch light
+                    Colors.white.withOpacity(0.05),
+                  ]
+                : [
+                    Colors.black.withOpacity(0.15),
+                    Colors.black.withOpacity(0.02),
+                  ],
+            ),
+            child: Column(
             children: [
-              // Search Bar Top Padding
-              const SizedBox(height: 16),
+              // === FLIGHTY DRAG HANDLE ===
+              const SizedBox(height: 8),
+              Container(
+                width: 40,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.white.withOpacity(0.3) : Colors.black.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              const SizedBox(height: 12),
 
-              // Search Bar (Always Editable Now)
+              // Search Bar
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: _buildEditableSearchBar(),
               ),
 
-              // Search Results (Only visible when expanded/search mode)
+              // Search Results
               if (_currentHeight > _minHeight + 20)
                 Expanded(
                   child: _buildSearchResults(isDark),
                 ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

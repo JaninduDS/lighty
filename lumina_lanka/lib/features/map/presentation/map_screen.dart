@@ -36,6 +36,7 @@ import 'widgets/street_view_widget.dart';
 import '../../../core/utils/app_notifications.dart';
 import '../../profile/presentation/profile_screen.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../shared/widgets/mobile_glass_drawer.dart';
 
 /// Main map screen with OpenStreetMap and Unified Bottom Sheet
 class MapScreen extends ConsumerStatefulWidget {
@@ -48,6 +49,8 @@ class MapScreen extends ConsumerStatefulWidget {
 class _MapScreenState extends ConsumerState<MapScreen> {
   // Map controller
   late final MapController _mapController;
+  // Scaffold key to open the drawer programmatically
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   
   // Location state
   // ignore: unused_field
@@ -493,7 +496,9 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     }
 
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: isDark ? const Color(0xFF1C1C1E) : const Color(0xFFF9F9F9),
+      drawer: const MobileGlassDrawer(),
       body: Stack(
         children: [
           FlutterMap(
@@ -555,19 +560,19 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               // Clustered Markers Layer
               MarkerClusterLayerWidget(
                 options: MarkerClusterLayerOptions(
-                  maxClusterRadius: 25,
+                  maxClusterRadius: 45,
                   size: const Size(44, 44),
                   alignment: Alignment.center,
                   padding: const EdgeInsets.all(50),
-                  maxZoom: 5, // At zoom level 5, clusters break apart into individual pins
+                  maxZoom: 16,
                   markers: _buildMarkers(),
                   builder: (context, markers) {
                     return Container(
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1C1C1E).withOpacity(0.95), // Dark glass
+                        color: const Color(0xFF1C1C1E).withOpacity(0.95),
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: const Color(0xFF0A84FF), // Blue ring
+                          color: const Color(0xFF0A84FF),
                           width: 2.5,
                         ),
                         boxShadow: [
@@ -617,12 +622,15 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             Positioned(
               top: MediaQuery.of(context).padding.top + 16,
               right: 80, // Offset to the left of the buttons
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 200),
-                opacity: _isReportPanelOpen ? 0.0 : 1.0,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  decoration: BoxDecoration(
+              left: 16,
+              child: Align(
+                alignment: Alignment.topRight,
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 200),
+                  opacity: _isReportPanelOpen ? 0.0 : 1.0,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    decoration: BoxDecoration(
                     color: wDark ? const Color(0xFF1C1C1E) : Colors.white, // Dark iOS style surface
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: wDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05)),
@@ -635,19 +643,85 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                       ),
                     ],
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min, // Hug contents
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildModeItem('Standard', 'assets/icons/explore.png'),
-                      const SizedBox(width: 16),
-                      _buildModeItem('Hybrid', 'assets/icons/transit.png'),
-                      const SizedBox(width: 16),
-                      _buildModeItem('Satellite', 'assets/icons/satellite.png'),
-                      const SizedBox(width: 16),
-                      _buildModeItem('Plain', 'assets/icons/explore.png'), // Using explore.png as fallback
+                  child: SingleChildScrollView( // <-- ADD THIS
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildModeItem('Standard', 'assets/icons/explore.png'),
+                        const SizedBox(width: 16),
+                        _buildModeItem('Hybrid', 'assets/icons/transit.png'),
+                        const SizedBox(width: 16),
+                        _buildModeItem('Satellite', 'assets/icons/satellite.png'),
+                        const SizedBox(width: 16),
+                        _buildModeItem('Plain', 'assets/icons/explore.png'),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
 
-                    ],
+          // === HAMBURGER MENU BUTTON (Mobile Only) ===
+          if (MediaQuery.of(context).size.width < 1024)
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 16,
+              left: 16,
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 200),
+                opacity: _isReportPanelOpen ? 0.0 : 1.0,
+                child: IgnorePointer(
+                  ignoring: _isReportPanelOpen,
+                  child: Builder(
+                    builder: (context) => GestureDetector(
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        Scaffold.of(context).openDrawer();
+                      },
+                      child: Container(
+                        width: 52,
+                        height: 52,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.3),
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: GlassmorphicContainer(
+                          width: 52,
+                          height: 52,
+                          borderRadius: 26,
+                          blur: 40,
+                          alignment: Alignment.center,
+                          border: 1.0,
+                          linearGradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: wDark 
+                              ? [const Color(0xFF1C1C1E).withOpacity(0.75), const Color(0xFF121212).withOpacity(0.65)]
+                              : [Colors.white.withOpacity(0.90), Colors.white.withOpacity(0.80)],
+                          ),
+                          borderGradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: wDark
+                              ? [Colors.white.withOpacity(0.25), Colors.white.withOpacity(0.05)]
+                              : [Colors.black.withOpacity(0.15), Colors.black.withOpacity(0.02)],
+                          ),
+                          child: Icon(
+                            CupertinoIcons.bars,
+                            color: wDark ? Colors.white : Colors.black87,
+                            size: 24,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -667,35 +741,61 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                     HapticFeedback.lightImpact();
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                      MaterialPageRoute(builder: (_) => const ProfileScreen()),
                     );
                   },
                   child: Container(
-                    width: 48,
-                    height: 48,
+                    width: 52,
+                    height: 52,
                     decoration: BoxDecoration(
-                      color: wDark ? const Color(0xFF1C1C1E).withOpacity(0.8) : Colors.white.withOpacity(0.8),
                       shape: BoxShape.circle,
-                      border: Border.all(
-                        color: wDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1),
-                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
+                          color: Colors.black.withOpacity(0.3),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
                         ),
                       ],
                     ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(24),
-                      child: BackdropFilter(
-                        filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                        child: Icon(
-                          CupertinoIcons.person_crop_circle_fill,
-                          color: authState.user != null ? const Color(0xFF0A84FF) : Colors.grey,
-                          size: 28,
-                        ),
+                    child: GlassmorphicContainer(
+                      width: 52,
+                      height: 52,
+                      borderRadius: 26,
+                      blur: 40,
+                      alignment: Alignment.center,
+                      border: 1.0,
+                      linearGradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: wDark 
+                          ? [
+                              const Color(0xFF1C1C1E).withOpacity(0.75),
+                              const Color(0xFF121212).withOpacity(0.65),
+                            ]
+                          : [
+                              Colors.white.withOpacity(0.90),
+                              Colors.white.withOpacity(0.80),
+                            ],
+                      ),
+                      borderGradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: wDark
+                          ? [
+                              Colors.white.withOpacity(0.25),
+                              Colors.white.withOpacity(0.05),
+                            ]
+                          : [
+                              Colors.black.withOpacity(0.15),
+                              Colors.black.withOpacity(0.02),
+                            ],
+                      ),
+                      child: Icon(
+                        CupertinoIcons.person_fill,
+                        color: authState.user != null 
+                            ? const Color(0xFF0A84FF) 
+                            : (wDark ? Colors.white70 : Colors.black54),
+                        size: 30,
                       ),
                     ),
                   ),
@@ -716,18 +816,22 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 children: [
                   // === MAP, LOCATION & THEME PILL ===
                   Container(
-                    width: 48,
+                    width: 52, // Slightly wider
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(26), // Perfect capsule
                       boxShadow: [
-                        BoxShadow(color: Colors.black.withValues(alpha: 0.20), blurRadius: 30, offset: const Offset(0, 4)),
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.3), 
+                          blurRadius: 30, 
+                          offset: const Offset(0, 10)
+                        ),
                       ],
                     ),
                     child: GlassmorphicContainer(
-                      width: 48,
-                      height: 192, // Fits 4 buttons (Map, Location, Theme, Filter)
-                      borderRadius: 16,
-                      blur: 14,
+                      width: 52,
+                      height: 196, 
+                      borderRadius: 26, // Match wrapper
+                      blur: 40, // Flighty blur
                       alignment: Alignment.center,
                       border: 1.0,
                       linearGradient: LinearGradient(
@@ -735,12 +839,12 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                         end: Alignment.bottomRight,
                         colors: wDark 
                           ? [
-                              const Color(0xFF262626).withValues(alpha: 0.60),
-                              const Color(0xFF262626).withValues(alpha: 0.60),
+                              const Color(0xFF1C1C1E).withOpacity(0.75),
+                              const Color(0xFF121212).withOpacity(0.65),
                             ]
                           : [
-                              Colors.white.withValues(alpha: 0.85),
-                              Colors.white.withValues(alpha: 0.75),
+                              Colors.white.withOpacity(0.90),
+                              Colors.white.withOpacity(0.80),
                             ],
                       ),
                       borderGradient: LinearGradient(
@@ -748,12 +852,12 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                         end: Alignment.bottomRight,
                         colors: wDark
                           ? [
-                              Colors.white.withValues(alpha: 0.20),
-                              Colors.white.withValues(alpha: 0.11),
+                              Colors.white.withOpacity(0.25),
+                              Colors.white.withOpacity(0.05),
                             ]
                           : [
-                              Colors.black.withValues(alpha: 0.15),
-                              Colors.black.withValues(alpha: 0.05),
+                              Colors.black.withOpacity(0.15),
+                              Colors.black.withOpacity(0.02),
                             ],
                       ),
                       child: Column(
@@ -998,18 +1102,22 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                   const SizedBox(height: 12),
                   // === ZOOM PILL ===
                   Container(
-                    width: 48,
+                    width: 52, // <-- Updated to 52
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(26), // <-- Matched to inner radius
                       boxShadow: [
-                        BoxShadow(color: Colors.black.withValues(alpha: 0.20), blurRadius: 30, offset: const Offset(0, 4)),
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.3), // <-- Deeper shadow
+                          blurRadius: 30, 
+                          offset: const Offset(0, 10),
+                        ),
                       ],
                     ),
                     child: GlassmorphicContainer(
-                      width: 48,
-                      height: 96, // 48 * 2
-                      borderRadius: 16,
-                      blur: 14,
+                      width: 52, // <-- Updated to 52
+                      height: 104, // <-- 52 * 2
+                      borderRadius: 26,
+                      blur: 40,
                       alignment: Alignment.center,
                       border: 1.0,
                       linearGradient: LinearGradient(
@@ -1017,12 +1125,12 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                         end: Alignment.bottomRight,
                         colors: wDark 
                           ? [
-                              const Color(0xFF262626).withValues(alpha: 0.60),
-                              const Color(0xFF262626).withValues(alpha: 0.60),
+                              const Color(0xFF1C1C1E).withOpacity(0.75),
+                              const Color(0xFF121212).withOpacity(0.65),
                             ]
                           : [
-                              Colors.white.withValues(alpha: 0.85),
-                              Colors.white.withValues(alpha: 0.75),
+                              Colors.white.withOpacity(0.90),
+                              Colors.white.withOpacity(0.80),
                             ],
                       ),
                       borderGradient: LinearGradient(
@@ -1030,12 +1138,12 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                         end: Alignment.bottomRight,
                         colors: wDark
                           ? [
-                              Colors.white.withValues(alpha: 0.20),
-                              Colors.white.withValues(alpha: 0.11),
+                              Colors.white.withOpacity(0.25),
+                              Colors.white.withOpacity(0.05),
                             ]
                           : [
-                              Colors.black.withValues(alpha: 0.15),
-                              Colors.black.withValues(alpha: 0.05),
+                              Colors.black.withOpacity(0.15),
+                              Colors.black.withOpacity(0.02),
                             ],
                       ),
                       child: Column(
@@ -1051,8 +1159,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                                 _mapController.move(_mapController.camera.center, currentZoom + 1);
                               },
                               child: Container(
-                                width: 48,
-                                height: 48,
+                                width: 52,
+                                height: 51,
                                 color: Colors.transparent,
                                 child: Icon(
                                   CupertinoIcons.plus,
@@ -1065,8 +1173,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                           // Divider
                           Container(
                             height: 1,
-                            width: 32,
-                            color: wDark ? Colors.white.withValues(alpha: 0.15) : Colors.black.withValues(alpha: 0.1),
+                            width: 36, // Slightly wider divider
+                            color: wDark ? Colors.white.withOpacity(0.15) : Colors.black.withOpacity(0.1),
                           ),
                           // Zoom Out
                           MouseRegion(
@@ -1078,8 +1186,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                                 _mapController.move(_mapController.camera.center, currentZoom - 1);
                               },
                               child: Container(
-                                width: 48,
-                                height: 47,
+                                width: 52,
+                                height: 51,
                                 color: Colors.transparent,
                                 child: Icon(
                                   CupertinoIcons.minus,
@@ -1213,8 +1321,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           if (authState.role == AppRole.marker && !isMarkingPole)
             AnimatedPositioned(
               duration: const Duration(milliseconds: 300),
-              bottom: MediaQuery.of(context).padding.bottom + 24,
-              right: kIsWeb ? 90 : 24, // Avoid overlapping StreetView button on web
+              bottom: MediaQuery.of(context).padding.bottom + 110,
+              left: 16,
               child: AnimatedOpacity(
                 duration: const Duration(milliseconds: 300),
                 opacity: _isReportPanelOpen ? 0.0 : 1.0,
@@ -1240,65 +1348,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               ),
             ),
 
-          // === REPORT BUTTON (Bottom Left/Center) - Mobile Only ===
-          if (MediaQuery.of(context).size.width < 768)
-            AnimatedPositioned(
-              duration: const Duration(milliseconds: 200),
-              bottom: MediaQuery.of(context).padding.bottom + 24, // Bottom anchored
-              left: 24, // Left aligned, below search panel
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 300),
-                opacity: _isSearchActive || _isReportPanelOpen ? 0.0 : 1.0,
-                child: IgnorePointer(
-                  ignoring: _isSearchActive || _isReportPanelOpen,
-                  child: GestureDetector(
-                  onTap: () {
-                    HapticFeedback.mediumImpact();
-                    setState(() => _isReportPanelOpen = true);
-                  },
-                  child: GlassmorphicContainer(
-                    width: 180, // Increased width
-                    height: 52,
-                    borderRadius: 100, // Apple-like squircle
-                    blur: 35,
-                    alignment: Alignment.center,
-                    border: 1.5,
-                    linearGradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        const Color(0xFF1E2C3A).withValues(alpha: 0.95), // Deep navy
-                        const Color(0xFF16202A).withValues(alpha: 0.95),
-                      ],
-                    ),
-                    borderGradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Colors.white.withValues(alpha: 0.1),
-                        Colors.white.withValues(alpha: 0.05),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(CupertinoIcons.exclamationmark_bubble, color: Color(0xFF4A90E2), size: 20),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Report an Issue',
-                          style: TextStyle(fontFamily: 'GoogleSansFlex', 
-                            color: const Color(0xFF4A90E2),
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
+          
 
           // === NEAREST STREETLIGHT CARD (Bottom Center) ===
           AnimatedPositioned(
@@ -1447,77 +1497,43 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           // Hide if Marking Pole OR Map Mode is Open.
           // If Report Panel is open, we KEEP it but shrink it (handled by width param)
           // === UNIFIED BOTTOM SHEET & ACTION BUTTONS (Moved to Top Left) - Mobile Only ===
-          if (!isMarkingPole && !_isMapModeOpen && MediaQuery.of(context).size.width < 768)
-            AnimatedAlign(
-              duration: const Duration(milliseconds: 600),
-              curve: Curves.easeInOutCubicEmphasized,
-              alignment: Alignment.topLeft, // Anchor to Top Left
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 300),
-                opacity: _isReportPanelOpen ? 0.0 : 1.0,
-                child: IgnorePointer(
-                  ignoring: _isReportPanelOpen,
-                  child: Padding(
-                    // Pad from the top and left to float
-                    padding: EdgeInsets.only(
-                      top: MediaQuery.of(context).padding.top + 16,
-                      left: 16, 
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start, // Align left
-                      children: [
-                        // Unified Search Sheet
-                        UnifiedGlassSheet(
-                          width: MediaQuery.of(context).size.width * 0.35, // Desktop/iPad sidebar width
-                          selectedActionIndex: _selectedActionIndex,
-                          onActionSelected: (index) {
-                            setState(() => _selectedActionIndex = (_selectedActionIndex == index) ? null : index);
-                          },
-                          onFocusChange: (isFocused) {
-                            setState(() => _isSearchFocused = isFocused);
-                          },
-                          onSearchModeChanged: (isActive) {
-                            setState(() => _isSearchActive = isActive);
-                          },
-                          onLocationSelected: (lat, lng, displayName) {
-                            _mapController.move(LatLng(lat, lng), 16.0);
-                            FocusManager.instance.primaryFocus?.unfocus();
-                            
-                            AppNotifications.show(
-                              context: context,
-                              message: 'Moved to: $displayName',
-                              icon: CupertinoIcons.location_solid,
-                              iconColor: const Color(0xFF0A84FF),
-                            );
-                          },
-                        ),
-
-                        // Separate Action Buttons (Floating UNDER the search bar)
-                        AnimatedSize(
-                          duration: const Duration(milliseconds: 300),
-                          alignment: Alignment.topCenter,
-                          child: Container(
-                           height: _isSearchActive ? 0 : null, // Collapse when searching
-                           child: AnimatedOpacity(
-                              duration: const Duration(milliseconds: 300),
-                              opacity: _isSearchActive ? 0.0 : 1.0,
-                              child: Padding(
-                                padding: const EdgeInsets.only(top: 16),
-                                child: _buildActionButtons(wDark),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+          // === FLIGHTY-STYLE BOTTOM SEARCH CARD (Mobile Only) ===
+          if (MediaQuery.of(context).size.width < 1024)
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeOutCubic,
+              bottom: _isReportPanelOpen || _showNearestPoleButton 
+                  ? -200 // Hide if report panel or nearest pole is showing
+                  : MediaQuery.of(context).padding.bottom + 16,
+              left: 16,
+              right: 16,
+              child: UnifiedGlassSheet(
+                width: double.infinity, // Take full width minus padding
+                selectedActionIndex: _selectedActionIndex,
+                onActionSelected: (index) {
+                  setState(() => _selectedActionIndex = (_selectedActionIndex == index) ? null : index);
+                },
+                onFocusChange: (isFocused) {
+                  setState(() => _isSearchFocused = isFocused);
+                },
+                onSearchModeChanged: (isActive) {
+                  setState(() => _isSearchActive = isActive);
+                },
+                onLocationSelected: (lat, lng, displayName) {
+                  _mapController.move(LatLng(lat, lng), 16.0);
+                  FocusManager.instance.primaryFocus?.unfocus();
+                  AppNotifications.show(
+                    context: context,
+                    message: 'Moved to: $displayName',
+                    icon: CupertinoIcons.location_solid,
+                    iconColor: const Color(0xFF0A84FF),
+                  );
+                },
               ),
             ),
 
           // === POLE INFO SIDEBAR ===
-          if (MediaQuery.of(context).size.width >= 768)
+          if (MediaQuery.of(context).size.width >= 1024)
             PoleInfoSidebar(
               poleData: _selectedPole,
               isVisible: _selectedPole != null,
@@ -1530,7 +1546,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             ),
 
           // === SEARCH WARDS SIDEBAR ===
-          if (MediaQuery.of(context).size.width >= 768)
+          if (MediaQuery.of(context).size.width >= 1024)
             SearchWardsSidebar(
               isVisible: _isSearchWardsOpen,
               leftPosition: _isWebSidebarExpanded ? 240 : 104,
@@ -1598,7 +1614,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           // Removed: ReportIssueDialog is deprecated in favor of ReportSidePanel
           
           // === WEB SIDEBAR (Wide Screens Only) ===
-          if (MediaQuery.of(context).size.width >= 768)
+          if (MediaQuery.of(context).size.width >= 1024)
             Positioned(
               left: 0,
               top: 0,
@@ -1636,55 +1652,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       ),
     );
   }
-  
-  Widget _buildActionButtons(bool wDark) {
-    final actions = [
-      ('Public User', CupertinoIcons.person_2_fill),
-      ('Council', CupertinoIcons.building_2_fill),
-      ('Electrician', CupertinoIcons.bolt_fill),
-      ('Marker', CupertinoIcons.map_pin_ellipse),
-    ];
-
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: actions.map((action) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6),
-            child: GestureDetector(
-              onTap: () {
-                HapticFeedback.lightImpact();
-                // TODO: Handle action tap
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                decoration: BoxDecoration(
-                  color: wDark ? Colors.black.withValues(alpha: 0.5) : Colors.white.withValues(alpha: 0.8), 
-                  border: Border.all(color: wDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1)),
-                  borderRadius: BorderRadius.circular(100), // Pill shape
-                ),
-                child: Row(
-                  children: [
-                    Icon(action.$2, color: const Color(0xFF008FFF), size: 16),
-                    const SizedBox(width: 8),
-                    Text(
-                      action.$1,
-                      style: TextStyle(fontFamily: 'GoogleSansFlex', 
-                        color: wDark ? Colors.white.withValues(alpha: 0.9) : Colors.black87,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
 
   List<Marker> _buildMarkers() {
     return _poleDataList.where((pole) {
@@ -1701,44 +1668,37 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
       final isExpanded = _expandedPoleId == fullId;
 
-      // Status color mapping (Light Outline/Text)
+      // Status color mapping
       Color statusColor;
-
       switch (status) {
-        case 'Maintenance': // Not Working
-          statusColor = const Color(0xFFFE3D2F);
+        case 'Maintenance':
+          statusColor = const Color(0xFFFE3D2F); // Red
           break;
         case 'Reported':
-          statusColor = const Color(0xFFFE9500);
+          statusColor = const Color(0xFFFE9500); // Orange
           break;
-        case 'Active': // Working
-          statusColor = const Color(0xFF53B36F);
+        case 'Working': // Changed from 'Active' to match your DB
+          statusColor = const Color(0xFF53B36F); // Green
           break;
         default:
-          statusColor = const Color(0xFF0A84FF); // Light Blue fallback
+          statusColor = const Color(0xFF0A84FF); // Blue
       }
 
       return Marker(
         point: LatLng(lat, lng),
-        width: isExpanded ? 140 : 54, // slightly larger for the box look
+        width: isExpanded ? 140 : 54,
         height: 54,
         child: GestureDetector(
           onTap: () {
-          HapticFeedback.lightImpact();
-          if (mounted) {
-            if (isExpanded) {
-              // If already expanded, tap again to collapse
-              setState(() {
-                _expandedPoleId = null;
-                if (_selectedPole?['id'] == fullId) {
-                  _selectedPole = null; // Close side panel if it's the currently selected pole
-                }
-              });
-            } else {
-              // Single tap: Expand marker AND open pole info sidebar
-              setState(() {
-                _expandedPoleId = fullId;
-                _selectedPole = {
+            HapticFeedback.lightImpact();
+            if (mounted) {
+              if (isExpanded) {
+                setState(() {
+                  _expandedPoleId = null;
+                  if (_selectedPole?['id'] == fullId) _selectedPole = null;
+                });
+              } else {
+                final poleData = {
                   'id': fullId,
                   'status': status,
                   'latitude': lat,
@@ -1746,13 +1706,41 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                   'bulb_type': pole['bulb_type'],
                   'pole_type': pole['pole_type'],
                 };
-                _isSearchWardsOpen = false;
-              });
-              _mapController.move(LatLng(lat, lng), 18.0); // Center and zoom in
+
+                setState(() {
+                  _expandedPoleId = fullId;
+                  _selectedPole = poleData;
+                  _isSearchWardsOpen = false;
+                });
+                _mapController.move(LatLng(lat, lng), 18.0);
+
+                if (MediaQuery.of(context).size.width < 1024) {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) => MobilePoleInfoSheet(
+                      poleData: poleData,
+                      onClose: () => Navigator.pop(context),
+                      onReportTapped: () {
+                        Navigator.pop(context);
+                        setState(() => _isReportPanelOpen = true);
+                      },
+                    ),
+                  ).then((_) {
+                    if (mounted) {
+                      setState(() {
+                        _expandedPoleId = null;
+                        _selectedPole = null;
+                      });
+                    }
+                  });
+                }
+              }
             }
-          }
-        },
-        child: AnimatedContainer(
+          },
+          // === THE MISSING PIECE WAS HERE ===
+          child: AnimatedContainer(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeOutCubic,
             padding: EdgeInsets.symmetric(
@@ -1760,15 +1748,15 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               vertical: 8,
             ),
             decoration: BoxDecoration(
-              color: const Color(0xFF202020).withOpacity(0.95), // Original Dark, sleek box
-              borderRadius: BorderRadius.circular(100), // Perfect circle pill shape
+              color: const Color(0xFF202020).withOpacity(0.95),
+              borderRadius: BorderRadius.circular(100),
               border: Border.all(
                 color: Colors.white.withOpacity(0.08),
                 width: 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.3), // Reverted shadow
+                  color: Colors.black.withOpacity(0.3),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -1793,7 +1781,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                       status,
                       style: TextStyle(
                         fontFamily: 'GoogleSansFlex',
-                        color: statusColor, // Light text color
+                        color: statusColor,
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         letterSpacing: 0.2,
@@ -1806,6 +1794,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               ],
             ),
           ),
+          // ==================================
         ),
       );
     }).toList();

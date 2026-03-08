@@ -227,14 +227,6 @@ class _WebSidebarState extends ConsumerState<WebSidebar> {
 
         const SizedBox(height: 16),
 
-        // === NAVIGATION LINKS (COLLAPSED) ===
-        _buildSidebarIconButton(
-          icon: CupertinoIcons.exclamationmark_triangle_fill,
-          tooltip: l10n.reportAnIssue,
-          onTap: widget.onReportTapped,
-          isActive: false,
-          iconColor: const Color(0xFFE84A5F), // Red
-        ),
 
         if (authState.role == AppRole.council) ...[
           const SizedBox(height: 12),
@@ -505,12 +497,6 @@ class _WebSidebarState extends ConsumerState<WebSidebar> {
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       children: [
-        _buildNavTile(
-          icon: CupertinoIcons.exclamationmark_triangle_fill,
-          title: l10n.reportAnIssue,
-          onTap: widget.onReportTapped,
-          color: const Color(0xFFE84A5F),
-        ),
         if (authState.role == AppRole.council) ...[
           const SizedBox(height: 8),
           _buildNavTile(

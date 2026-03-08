@@ -147,60 +147,68 @@ class _LoginDialogState extends State<LoginDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom; // <-- Gets keyboard height
+
     return Center(
-      child: Material(
-        color: Colors.transparent,
-        child: Container(
-          width: 800,
-          height: 560,
-          decoration: BoxDecoration(
-            color: _bgColor,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.08),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.6),
-                blurRadius: 80,
-                spreadRadius: 10,
+      child: Padding(
+        padding: EdgeInsets.only(bottom: bottomInset),
+        child: SingleChildScrollView(
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              width: isMobile ? MediaQuery.of(context).size.width * 0.9 : 800,
+              height: isMobile ? 480 : 560,
+              decoration: BoxDecoration(
+                color: _bgColor,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.08),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.6),
+                    blurRadius: 80,
+                    spreadRadius: 10,
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: Stack(
-              children: [
-                // Close button
-                Positioned(
-                  top: 16,
-                  left: 16,
-                  child: _buildCloseButton(),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Stack(
+                  children: [
+                    // Close button
+                    Positioned(
+                      top: 16,
+                      left: 16,
+                      child: _buildCloseButton(),
+                    ),
+                    // Content with animated crossfade
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 400),
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeInCubic,
+                      transitionBuilder: (child, animation) {
+                        return FadeTransition(
+                          opacity: animation,
+                          child: SlideTransition(
+                            position: Tween<Offset>(
+                              begin: const Offset(0.03, 0),
+                              end: Offset.zero,
+                            ).animate(animation),
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: _isSignUpMode
+                          ? _buildSignUpStep(key: const ValueKey('signup'))
+                          : _isStep2
+                              ? _buildStep2(key: const ValueKey('step2'))
+                              : _buildStep1(key: const ValueKey('step1')),
+                    ),
+                  ],
                 ),
-                // Content with animated crossfade
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 400),
-                  switchInCurve: Curves.easeOutCubic,
-                  switchOutCurve: Curves.easeInCubic,
-                  transitionBuilder: (child, animation) {
-                    return FadeTransition(
-                      opacity: animation,
-                      child: SlideTransition(
-                        position: Tween<Offset>(
-                          begin: const Offset(0.03, 0),
-                          end: Offset.zero,
-                        ).animate(animation),
-                        child: child,
-                      ),
-                    );
-                  },
-                  child: _isSignUpMode
-                      ? _buildSignUpStep(key: const ValueKey('signup'))
-                      : _isStep2
-                          ? _buildStep2(key: const ValueKey('step2'))
-                          : _buildStep1(key: const ValueKey('step1')),
-                ),
-              ],
+              ),
             ),
           ),
         ),
@@ -231,12 +239,14 @@ class _LoginDialogState extends State<LoginDialog> {
   // STEP 1: Email Entry
   // ─────────────────────────────────────────────
   Widget _buildStep1({Key? key}) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     return SizedBox(
       key: key,
-      width: 800,
-      height: 560,
+      width: isMobile ? double.infinity : 800,
+      height: isMobile ? 480 : 560,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 100),
+        padding: EdgeInsets.symmetric(horizontal: isMobile ? 24 : 100),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -383,12 +393,14 @@ class _LoginDialogState extends State<LoginDialog> {
   // STEP 2: Password Entry
   // ─────────────────────────────────────────────
   Widget _buildStep2({Key? key}) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     return SizedBox(
       key: key,
-      width: 800,
-      height: 560,
+      width: isMobile ? double.infinity : 800,
+      height: isMobile ? 480 : 560,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 140),
+        padding: EdgeInsets.symmetric(horizontal: isMobile ? 24 : 140),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -571,12 +583,14 @@ class _LoginDialogState extends State<LoginDialog> {
   // SIGN UP STEP
   // ─────────────────────────────────────────────
   Widget _buildSignUpStep({Key? key}) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     return SizedBox(
       key: key,
-      width: 800,
-      height: 560,
+      width: isMobile ? double.infinity : 800,
+      height: isMobile ? 480 : 560,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 100),
+        padding: EdgeInsets.symmetric(horizontal: isMobile ? 24 : 100),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
