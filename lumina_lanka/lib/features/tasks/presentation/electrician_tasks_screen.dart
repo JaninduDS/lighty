@@ -46,19 +46,48 @@ class _ElectricianTasksScreenState extends State<ElectricianTasksScreen> {
     }
   }
 
-  Future<void> _resolveTask(String reportId) async {
+  // ADD poleId as a parameter
+  Future<void> _resolveTask(String reportId, String poleId) async {
     HapticFeedback.mediumImpact();
     
-    // Optimistic UI update (remove it from the list immediately for a snappy feel)
+    // Optimistic UI update
     setState(() {
       _pendingTasks.removeWhere((task) => task['id'] == reportId);
     });
 
+    final connectivityResult = await Connectivity().checkConnectivity();
+    final isOffline = connectivityResult.contains(ConnectivityResult.none);
+
+    if (isOffline) {
+      final box = await Hive.openBox<List<dynamic>>('offline_sync');
+      final currentQueue = box.get('pending_resolutions', defaultValue: []) ?? [];
+      // Save both IDs for offline sync
+      currentQueue.add({'reportId': reportId, 'poleId': poleId}); 
+      await box.put('pending_resolutions', currentQueue);
+
+      if (mounted) {
+        AppNotifications.show(
+          context: context,
+          message: 'You are offline. Task saved and will sync automatically.',
+          icon: CupertinoIcons.wifi_slash,
+          iconColor: AppColors.accentAmber,
+        );
+      }
+      return; 
+    }
+
     try {
+      // 1. Update Report
       await Supabase.instance.client
           .from('reports')
           .update({'status': 'Resolved'})
           .eq('id', reportId);
+          
+      // 2. Update Pole
+      await Supabase.instance.client
+          .from('poles')
+          .update({'status': 'Working'})
+          .eq('id', poleId);
 
       if (mounted) {
         AppNotifications.show(
@@ -69,8 +98,7 @@ class _ElectricianTasksScreenState extends State<ElectricianTasksScreen> {
         );
       }
     } catch (e) {
-      // If it fails, fetch the list again to restore the item
-      _fetchTasks();
+      _fetchTasks(); 
       if (mounted) {
         AppNotifications.show(
           context: context,
@@ -180,7 +208,7 @@ class _ElectricianTasksScreenState extends State<ElectricianTasksScreen> {
                               width: double.infinity,
                               height: 48,
                               child: ElevatedButton.icon(
-                                onPressed: () => _resolveTask(task['id']),
+                                onPressed: () => _resolveTask(task['id'], task['pole_id']),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.accentGreen.withOpacity(0.15),
                                   foregroundColor: AppColors.accentGreen,

@@ -201,14 +201,24 @@ class _PoleInfoSidebarState extends ConsumerState<PoleInfoSidebar> {
                                     textColor: Colors.white,
                                     onTap: () async {
                                       try {
-                                        // 1. Update Supabase
+                                        // 1. Update Pole to Working
                                         await Supabase.instance.client
                                             .from('poles')
                                             .update({'status': 'Working'})
                                             .eq('id', widget.poleData!['id']);
                                             
-                                        // 2. Show Success
+                                        // 2. Update all active reports for this pole to Resolved
+                                        await Supabase.instance.client
+                                            .from('reports')
+                                            .update({'status': 'Resolved'})
+                                            .eq('pole_id', widget.poleData!['id'])
+                                            .inFilter('status', ['Pending', 'Assigned']);
+                                            
                                         if (mounted) {
+                                          // 3. Update local UI state instantly
+                                          setState(() {
+                                            widget.poleData!['status'] = 'Working';
+                                          });
                                           AppNotifications.show(
                                             context: context,
                                             message: 'Pole marked as Working!',
@@ -802,10 +812,42 @@ class _MobilePoleInfoSheetState extends ConsumerState<MobilePoleInfoSheet> {
                                 icon: CupertinoIcons.checkmark_seal_fill,
                                 color: const Color(0xFF34C759),
                                 onTap: () async {
-                                  await Supabase.instance.client.from('poles').update({'status': 'Working'}).eq('id', widget.poleData['id']);
-                                  if (mounted) {
-                                    AppNotifications.show(context: context, message: 'Pole marked as Working!', icon: CupertinoIcons.check_mark_circled_solid, iconColor: const Color(0xFF34C759));
-                                    widget.onClose();
+                                  try {
+                                    // 1. Update Pole
+                                    await Supabase.instance.client
+                                        .from('poles')
+                                        .update({'status': 'Working'})
+                                        .eq('id', widget.poleData['id']);
+                                        
+                                    // 2. Update Reports
+                                    await Supabase.instance.client
+                                        .from('reports')
+                                        .update({'status': 'Resolved'})
+                                        .eq('pole_id', widget.poleData['id'])
+                                        .inFilter('status', ['Pending', 'Assigned']);
+
+                                    if (mounted) {
+                                      // 3. Update local UI state instantly
+                                      setState(() {
+                                        widget.poleData['status'] = 'Working';
+                                      });
+                                      AppNotifications.show(
+                                        context: context, 
+                                        message: 'Pole marked as Working!', 
+                                        icon: CupertinoIcons.check_mark_circled_solid, 
+                                        iconColor: const Color(0xFF34C759)
+                                      );
+                                      widget.onClose();
+                                    }
+                                  } catch (e) {
+                                    if (mounted) {
+                                      AppNotifications.show(
+                                        context: context,
+                                        message: 'Error: $e',
+                                        icon: CupertinoIcons.exclamationmark_triangle_fill,
+                                        iconColor: Colors.redAccent,
+                                      );
+                                    }
                                   }
                                 },
                               ),
