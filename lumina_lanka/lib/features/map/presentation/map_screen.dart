@@ -1321,8 +1321,14 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           if (authState.role == AppRole.marker && !isMarkingPole)
             AnimatedPositioned(
               duration: const Duration(milliseconds: 300),
-              bottom: MediaQuery.of(context).padding.bottom + 110,
-              left: 16,
+              // Mobile: Above search bar. Desktop: Bottom left
+              bottom: MediaQuery.of(context).size.width < 1024 
+                  ? MediaQuery.of(context).padding.bottom + 110 
+                  : 32, 
+              // Mobile: Left edge. Desktop: Shift past the sidebar
+              left: MediaQuery.of(context).size.width < 1024 
+                  ? 16 
+                  : (_isWebSidebarExpanded ? 240 : 104), 
               child: AnimatedOpacity(
                 duration: const Duration(milliseconds: 300),
                 opacity: _isReportPanelOpen ? 0.0 : 1.0,
@@ -1630,33 +1636,35 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               left: 0,
               top: 0,
               bottom: 0,
-              child: WebSidebar(
-                selectedActionIndex: _selectedActionIndex,
-                onExpandedChanged: (expanded) {
-                  setState(() => _isWebSidebarExpanded = expanded);
-                },
-                onActionSelected: (index) {
-                  setState(() => _selectedActionIndex = (_selectedActionIndex == index) ? null : index);
-                },
-                onLocationSelected: (lat, lng, displayName) {
-                  _mapController.move(LatLng(lat, lng), 16.0);
-                  AppNotifications.show(
-                    context: context,
-                    message: 'Moved to: $displayName',
-                    icon: CupertinoIcons.location_solid,
-                    iconColor: const Color(0xFF0A84FF),
-                  );
-                },
-                onReportTapped: () {
-                  setState(() => _isReportPanelOpen = true);
-                },
-                onSearchTapped: () {
-                  setState(() {
-                    _isSearchWardsOpen = !_isSearchWardsOpen;
-                    // Close pole info if search is opening
-                    if (_isSearchWardsOpen) _selectedPole = null;
-                  });
-                },
+              child: Center(
+                child: WebSidebar(
+                  selectedActionIndex: _selectedActionIndex,
+                  onExpandedChanged: (expanded) {
+                    setState(() => _isWebSidebarExpanded = expanded);
+                  },
+                  onActionSelected: (index) {
+                    setState(() => _selectedActionIndex = (_selectedActionIndex == index) ? null : index);
+                  },
+                  onLocationSelected: (lat, lng, displayName) {
+                    _mapController.move(LatLng(lat, lng), 16.0);
+                    AppNotifications.show(
+                      context: context,
+                      message: 'Moved to: $displayName',
+                      icon: CupertinoIcons.location_solid,
+                      iconColor: const Color(0xFF0A84FF),
+                    );
+                  },
+                  onReportTapped: () {
+                    setState(() => _isReportPanelOpen = true);
+                  },
+                  onSearchTapped: () {
+                    setState(() {
+                      _isSearchWardsOpen = !_isSearchWardsOpen;
+                      // Close pole info if search is opening
+                      if (_isSearchWardsOpen) _selectedPole = null;
+                    });
+                  },
+                ),
               ),
             ),
         ],

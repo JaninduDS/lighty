@@ -133,14 +133,15 @@ class _WebSidebarState extends ConsumerState<WebSidebar> {
   @override
   Widget build(BuildContext context) {
     final width = _isExpanded ? 210.0 : 64.0;
+    final height = _isExpanded ? MediaQuery.of(context).size.height * 0.85 : 420.0;
     
     return Container(
-      margin: const EdgeInsets.only(top: 16, bottom: 16, left: 16),
+      margin: const EdgeInsets.only(left: 16),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOutCubic,
         width: width,
-        height: double.infinity,
+        height: height,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
@@ -153,7 +154,7 @@ class _WebSidebarState extends ConsumerState<WebSidebar> {
         ),
         child: GlassmorphicContainer(
           width: width,
-          height: double.infinity,
+          height: height,
           borderRadius: 24,
           blur: 14,
           alignment: Alignment.topCenter,
@@ -350,7 +351,7 @@ class _WebSidebarState extends ConsumerState<WebSidebar> {
     return SingleChildScrollView(
       physics: const NeverScrollableScrollPhysics(),
       child: SizedBox(
-        height: MediaQuery.of(context).size.height - 32,
+        height: MediaQuery.of(context).size.height * 0.85,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
