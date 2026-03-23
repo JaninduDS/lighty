@@ -18,6 +18,7 @@ import '../../../core/utils/app_notifications.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../shared/widgets/widgets.dart';
+import '../../../core/theme/theme_provider.dart';
 import 'widgets/pole_form_sheet.dart';
 
 /// CartoDB Dark Matter tile URL for iOS 26 dark theme
@@ -249,51 +250,22 @@ class _MapMarkerScreenState extends ConsumerState<MapMarkerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final tileUrl = isDark 
+        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png'
+        : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png';
+
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text('Mark Poles'),
+        title: const Text('Mark Poles', style: TextStyle(fontFamily: 'GoogleSansFlex', fontWeight: FontWeight.bold)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        actions: [
-          // Stats indicator
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.bgSecondary.withValues(alpha: 0.8),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.borderGlass),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.accentGreen,
-                    boxShadow: GlowStyles.greenGlow,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  '$_polesMarkedToday today',
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
       body: _isLoading
           ? const Center(
@@ -331,7 +303,7 @@ class _MapMarkerScreenState extends ConsumerState<MapMarkerScreen> {
                   children: [
                     // Dark tile layer (CartoDB Dark Matter)
                     TileLayer(
-                      urlTemplate: _darkTileUrl,
+                      urlTemplate: tileUrl,
                       subdomains: const ['a', 'b', 'c', 'd'],
                       userAgentPackageName: 'com.maharagama.lumina_lanka',
                       tileProvider: NetworkTileProvider(),
@@ -435,11 +407,23 @@ class _MapMarkerScreenState extends ConsumerState<MapMarkerScreen> {
                   ),
                 ),
 
-                // Legend
+                // Theme Toggle Button
                 Positioned(
                   top: MediaQuery.of(context).padding.top + 60,
                   right: 16,
-                  child: const StatusLegend(),
+                  child: FloatingActionButton.small(
+                    heroTag: 'theme_toggle_marker', // Prevents hero animation errors
+                    backgroundColor: AppColors.bgSecondary,
+                    onPressed: () {
+                      HapticFeedback.mediumImpact();
+                      ref.read(themeModeProvider.notifier).state = 
+                          isDark ? ThemeMode.light : ThemeMode.dark;
+                    },
+                    child: Icon(
+                      isDark ? CupertinoIcons.sun_max_fill : CupertinoIcons.moon_fill,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
 
                 // Recenter button

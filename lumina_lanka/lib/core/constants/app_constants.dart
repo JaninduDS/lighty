@@ -18,7 +18,7 @@ class GeoConstants {
   
   /// Default map zoom levels
   static const double defaultZoom = 15.0;
-  static const double minZoom = 10.0;
+  static const double minZoom = 6.0;
   static const double maxZoom = 20.0;
   static const double markerModeZoom = 18.0;
 }
